@@ -1,0 +1,125 @@
+## TESTING
+environment: testing
+server:
+  error:
+    include-stacktrace: always
+  port: 8080
+
+spring:
+  flyway:
+    enabled: false
+  config:
+    activate:
+      on-profile: test
+  application:
+    name: registryapi
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: test
+    password:
+
+  jpa: 
+    database-platform: org.hibernate.dialect.H2Dialect
+  h2:
+    console:
+      enabled: true
+
+api:
+  security: 
+    token: 
+      secret: SECRET
+      expiration:
+        hour: 2
+    refreshtoken:
+      secret: SECRET
+      expiration:
+        hour: 24
+      secure: true
+      domain: localhost
+      httpOnly: true
+
+---
+## DEVELOPMENT
+environment: development
+server:
+  error:
+    include-stacktrace: always
+  port: 8080
+
+spring:
+  flyway:
+    enabled: true 
+  config:
+    activate:
+      on-profile: dev
+  application:
+    name: registryapi
+    datasource:
+      url: jdbc:postgresql://localhost:8888/db
+      username: postgres
+      password: password
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+
+api:
+  security:
+    token:
+      secret: SECRET
+      expiration:
+        hour: 5
+    refreshtoken:
+      secret: SECRET 
+      expiration:
+        hour: 24
+      secure: true
+      domain: localhost
+      httpOnly: true
+
+---
+## PRODUCTION
+environment: production 
+server:
+  port: ${PORT}
+
+spring:
+  flyway:
+    enabled: false
+  config:
+    activate:
+      on-profile: prod
+  application:
+    name: ${APP_NAME}
+  datasource:
+    url: jdbc:postgresql://${DB_HOSTNAME}:${DB_PORT}/${DB_PATH}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: ${SHOW_SQL}
+
+api:
+  security:
+    token:
+      secret: ${ACCESS_TOKEN_SECRET}
+      expiration:
+        hour: ${ACCESS_TOKEN_EXP}
+  refreshtoken:
+    secret: ${REFRESH_TOKEN_SECRET}
+    expiration:
+      hour: ${REFRESH_TOKEN_EXP}
+    secure: ${REFRESH_TOKEN_SECURE}
+    domain: ${REFRESH_TOKEN_DOMAIN}
+    httpOnly: ${REFRESH_TOKEN_HTTP_ONLY}
+
+management:
+  endpoints:
+    web: 
+      exposure:
+        include: ${EXPOSE_HEALTH}
+
