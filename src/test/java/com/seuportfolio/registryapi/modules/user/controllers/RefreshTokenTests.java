@@ -1,11 +1,15 @@
 package com.seuportfolio.registryapi.modules.user.controllers;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.seuportfolio.registryapi.modules.user.presentation.dto.CreateUserDTO;
+import com.seuportfolio.registryapi.modules.user.repositories.UserRepo;
+import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,16 +21,11 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.seuportfolio.registryapi.modules.user.presentation.dto.CreateUserDTO;
-import com.seuportfolio.registryapi.modules.user.repositories.UserRepo;
-
-import jakarta.servlet.http.Cookie;
-
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 public class RefreshTokenTests {
+
 	@Autowired
 	private MockMvc mockMvc;
 
@@ -44,11 +43,15 @@ public class RefreshTokenTests {
 		var mapper = new ObjectMapper();
 		ResultActions createUserResult = this.createUser(mapper);
 
-		Cookie cookie = createUserResult.andReturn().getResponse().getCookie("refresh-token");
-		ResultActions refreshTokensResult = this.mockMvc.perform(post("/auth/refresh-tokens")
-				.cookie(cookie));
+		Cookie cookie = createUserResult
+			.andReturn()
+			.getResponse()
+			.getCookie("refresh-token");
+		ResultActions refreshTokensResult =
+			this.mockMvc.perform(post("/auth/refresh-tokens").cookie(cookie));
 
-		refreshTokensResult.andExpect(status().isCreated())
+		refreshTokensResult
+			.andExpect(status().isCreated())
 			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 			.andExpect(jsonPath("$.accessToken").isString())
 			.andExpect(header().exists("set-cookie"));
@@ -57,7 +60,8 @@ public class RefreshTokenTests {
 	@Test
 	@DisplayName("it should throw unauthorized")
 	void unauthorizedCase() throws Exception {
-		ResultActions refreshTokens = this.mockMvc.perform(post("/auth/refresh-tokens"));
+		ResultActions refreshTokens =
+			this.mockMvc.perform(post("/auth/refresh-tokens"));
 		refreshTokens.andExpect(status().isForbidden());
 	}
 
@@ -70,11 +74,15 @@ public class RefreshTokenTests {
 
 		var json = mapper.writeValueAsString(body);
 
-		ResultActions result = this.mockMvc.perform(post("/user")
-				.content(json)
-				.contentType(MediaType.APPLICATION_JSON));
+		ResultActions result =
+			this.mockMvc.perform(
+					post("/user")
+						.content(json)
+						.contentType(MediaType.APPLICATION_JSON)
+				);
 
-		result.andExpect(status().isCreated())
+		result
+			.andExpect(status().isCreated())
 			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 			.andExpect(jsonPath("$.accessToken").isString())
 			.andExpect(header().exists("set-cookie"));

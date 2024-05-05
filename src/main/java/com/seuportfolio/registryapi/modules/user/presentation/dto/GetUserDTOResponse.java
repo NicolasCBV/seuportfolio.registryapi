@@ -4,10 +4,10 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 public record GetUserDTOResponse(
-	UUID id, 
-	String fullName, 
+	UUID id,
+	String fullName,
 	String email,
 	String description,
-	LocalDateTime createdAt, 
+	LocalDateTime createdAt,
 	LocalDateTime updatedAt
 ) {}

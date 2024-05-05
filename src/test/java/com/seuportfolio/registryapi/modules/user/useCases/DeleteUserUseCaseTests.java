@@ -3,6 +3,8 @@ package com.seuportfolio.registryapi.modules.user.useCases;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.seuportfolio.registryapi.modules.user.modals.UserEntity;
+import com.seuportfolio.registryapi.modules.user.repositories.UserRepo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -11,10 +13,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.seuportfolio.registryapi.modules.user.modals.UserEntity;
-import com.seuportfolio.registryapi.modules.user.repositories.UserRepo;
-
 public class DeleteUserUseCaseTests {
+
 	@Mock
 	@Autowired
 	private UserRepo userRepo;

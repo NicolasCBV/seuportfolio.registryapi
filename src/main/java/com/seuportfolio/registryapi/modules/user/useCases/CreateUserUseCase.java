@@ -1,15 +1,15 @@
 package com.seuportfolio.registryapi.modules.user.useCases;
 
+import com.seuportfolio.registryapi.modules.user.modals.UserEntity;
+import com.seuportfolio.registryapi.modules.user.presentation.dto.CreateUserDTO;
+import com.seuportfolio.registryapi.modules.user.repositories.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.seuportfolio.registryapi.modules.user.modals.UserEntity;
-import com.seuportfolio.registryapi.modules.user.presentation.dto.CreateUserDTO;
-import com.seuportfolio.registryapi.modules.user.repositories.UserRepo;
-
 @Service
 public class CreateUserUseCase {
+
 	@Autowired
 	private UserRepo userRepo;
 
@@ -17,10 +17,10 @@ public class CreateUserUseCase {
 	private BCryptPasswordEncoder bCryptPasswordEncoder;
 
 	public UserEntity exec(CreateUserDTO dto) {
-		String hashedPassword = this.bCryptPasswordEncoder.encode(dto.getPassword());
+		String hashedPassword =
+			this.bCryptPasswordEncoder.encode(dto.getPassword());
 
-		UserEntity user = UserEntity
-			.builder()
+		UserEntity user = UserEntity.builder()
 			.fullName(dto.getFullName())
 			.email(dto.getEmail())
 			.password(hashedPassword)

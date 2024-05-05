@@ -4,8 +4,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.seuportfolio.registryapi.modules.user.modals.UserEntity;
+import com.seuportfolio.registryapi.modules.user.repositories.UserRepo;
+import jakarta.servlet.http.Cookie;
 import java.util.Optional;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -13,17 +16,12 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
-import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.seuportfolio.registryapi.modules.user.modals.UserEntity;
-import com.seuportfolio.registryapi.modules.user.repositories.UserRepo;
-
-import jakarta.servlet.http.Cookie;
-
 public class RefreshTokenUseCaseTests {
+
 	@Mock
 	private UserRepo userRepo;
-	
-    private RefreshTokenUseCase refreshTokenUseCase;
+
+	private RefreshTokenUseCase refreshTokenUseCase;
 
 	@BeforeEach
 	void setup() {
@@ -52,18 +50,19 @@ public class RefreshTokenUseCaseTests {
 		Cookie cookie = this.refreshTokenUseCase.gen(user);
 
 		assertThat(cookie.getName()).isEqualTo("refresh-token");
-		
+
 		String token = cookie.getValue();
 		when(this.userRepo.findByEmail(user.getEmail())).thenReturn(optUser);
-		assertThat(this.refreshTokenUseCase.validate(token))
-			.isInstanceOf(UserEntity.class);
+		assertThat(this.refreshTokenUseCase.validate(token)).isInstanceOf(
+			UserEntity.class
+		);
 	}
 
 	@Test
 	@DisplayName("it should throw one error because token is invalid")
 	void invalidTokenFailCase() {
 		assertThrows(
-			JWTVerificationException.class, 
+			JWTVerificationException.class,
 			() -> this.refreshTokenUseCase.validate("wrong token")
 		);
 	}
@@ -80,7 +79,9 @@ public class RefreshTokenUseCaseTests {
 		Cookie cookie = this.refreshTokenUseCase.gen(user);
 		String token = cookie.getValue();
 
-		when(this.userRepo.findByEmail(user.getEmail())).thenReturn(Optional.empty());
+		when(this.userRepo.findByEmail(user.getEmail())).thenReturn(
+			Optional.empty()
+		);
 
 		assertThrows(
 			UsernameNotFoundException.class,

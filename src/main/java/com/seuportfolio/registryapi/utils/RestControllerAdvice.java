@@ -4,7 +4,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -12,4 +11,5 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Retention(RetentionPolicy.RUNTIME)
 @ControllerAdvice
 @ResponseBody
-public @interface RestControllerAdvice {}
+public @interface RestControllerAdvice {
+}

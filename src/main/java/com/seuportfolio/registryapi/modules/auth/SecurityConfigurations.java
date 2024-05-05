@@ -16,32 +16,54 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 public class SecurityConfigurations {
+
 	@Autowired
 	private SecurityFilter securityFilter;
 
 	@Bean
-	public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+	public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity)
+		throws Exception {
 		return httpSecurity
 			.csrf(csrf -> csrf.disable())
-			.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-			.authorizeHttpRequests(auth -> 
-					auth
-					.requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
-					.requestMatchers(HttpMethod.POST, "/user").permitAll()
-					.requestMatchers(HttpMethod.POST, "/auth/refresh-tokens").permitAll()
-					.requestMatchers(HttpMethod.GET, "/actuator/health").permitAll()
-					.anyRequest().authenticated()
+			.sessionManagement(
+				session ->
+					session.sessionCreationPolicy(
+						SessionCreationPolicy.STATELESS
+					)
 			)
-			.addFilterBefore(this.securityFilter, UsernamePasswordAuthenticationFilter.class)
+			.authorizeHttpRequests(
+				auth ->
+					auth
+						.requestMatchers(HttpMethod.POST, "/auth/login")
+						.permitAll()
+						.requestMatchers(HttpMethod.POST, "/user")
+						.permitAll()
+						.requestMatchers(
+							HttpMethod.POST,
+							"/auth/refresh-tokens"
+						)
+						.permitAll()
+						.requestMatchers(HttpMethod.GET, "/actuator/health")
+						.permitAll()
+						.anyRequest()
+						.authenticated()
+			)
+			.addFilterBefore(
+				this.securityFilter,
+				UsernamePasswordAuthenticationFilter.class
+			)
 			.build();
 	}
 
 	@Bean
-	public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) 
-		throws Exception {
+	public AuthenticationManager authenticationManager(
+		AuthenticationConfiguration authenticationConfiguration
+	) throws Exception {
 		return authenticationConfiguration.getAuthenticationManager();
 	}
 
 	@Bean
-	public BCryptPasswordEncoder passwordEncoder() { return new BCryptPasswordEncoder(); }
+	public BCryptPasswordEncoder passwordEncoder() {
+		return new BCryptPasswordEncoder();
+	}
 }

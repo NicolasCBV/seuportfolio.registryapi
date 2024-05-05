@@ -1,5 +1,14 @@
 package com.seuportfolio.registryapi.modules.user.controllers;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.seuportfolio.registryapi.modules.user.presentation.dto.CreateUserDTO;
+import com.seuportfolio.registryapi.modules.user.repositories.UserRepo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -11,20 +20,11 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.seuportfolio.registryapi.modules.user.presentation.dto.CreateUserDTO;
-import com.seuportfolio.registryapi.modules.user.repositories.UserRepo;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles(profiles = "test")
 public class CreateUserTests {
+
 	@Autowired
 	private MockMvc mockMvc;
 
@@ -41,7 +41,8 @@ public class CreateUserTests {
 	public void createUserSuccessCase() throws Exception {
 		ResultActions result = this.createUser();
 
-		result.andExpect(status().isCreated())
+		result
+			.andExpect(status().isCreated())
 			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 			.andExpect(jsonPath("$.accessToken").isString())
 			.andExpect(header().exists("set-cookie"));
@@ -52,13 +53,15 @@ public class CreateUserTests {
 	public void userAlreadyExistCase() throws Exception {
 		ResultActions result = this.createUser();
 
-		result.andExpect(status().isCreated())
+		result
+			.andExpect(status().isCreated())
 			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 			.andExpect(jsonPath("$.accessToken").isString())
 			.andExpect(header().exists("set-cookie"));
 
 		ResultActions conflictResult = this.createUser();
-		conflictResult.andExpect(status().isConflict())
+		conflictResult
+			.andExpect(status().isConflict())
 			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 			.andExpect(jsonPath("$.message").value("Entidade já existe"));
 	}
@@ -66,9 +69,10 @@ public class CreateUserTests {
 	@Test
 	@DisplayName("it should throw a bad request - empty JSON object")
 	public void emptyJSONBodyCase() throws Exception {
-		ResultActions result = this.mockMvc
-			.perform(post("/user")
-				.contentType(MediaType.APPLICATION_JSON));
+		ResultActions result =
+			this.mockMvc.perform(
+					post("/user").contentType(MediaType.APPLICATION_JSON)
+				);
 
 		result.andExpect(status().isBadRequest());
 	}
@@ -83,10 +87,12 @@ public class CreateUserTests {
 		var objectMapper = new ObjectMapper();
 		String json = objectMapper.writeValueAsString(body);
 
-		ResultActions result = this.mockMvc
-			.perform(post("/user")
-				.content(json)
-				.contentType(MediaType.APPLICATION_JSON));
+		ResultActions result =
+			this.mockMvc.perform(
+					post("/user")
+						.content(json)
+						.contentType(MediaType.APPLICATION_JSON)
+				);
 
 		return result;
 	}

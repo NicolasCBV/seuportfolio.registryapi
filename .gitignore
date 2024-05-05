@@ -36,4 +36,4 @@ build/
 *.properties
 !*.prod.properties
 !*.test.properties
-.mvn
+node_modules/

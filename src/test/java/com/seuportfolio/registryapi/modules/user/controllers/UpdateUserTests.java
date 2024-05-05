@@ -1,5 +1,6 @@
 package com.seuportfolio.registryapi.modules.user.controllers;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -7,9 +8,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.auth0.jwt.JWT;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.seuportfolio.registryapi.modules.user.modals.TokenPayloadEntity;
+import com.seuportfolio.registryapi.modules.user.presentation.dto.CreateUserDTO;
+import com.seuportfolio.registryapi.modules.user.presentation.dto.LoginResponseDTO;
+import com.seuportfolio.registryapi.modules.user.presentation.dto.UpdateUserDTO;
+import com.seuportfolio.registryapi.modules.user.repositories.UserRepo;
 import java.util.Base64;
 import java.util.Base64.Decoder;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,22 +28,11 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
-import com.auth0.jwt.JWT;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import com.seuportfolio.registryapi.modules.user.modals.TokenPayloadEntity;
-import com.seuportfolio.registryapi.modules.user.presentation.dto.CreateUserDTO;
-import com.seuportfolio.registryapi.modules.user.presentation.dto.LoginResponseDTO;
-import com.seuportfolio.registryapi.modules.user.presentation.dto.UpdateUserDTO;
-import com.seuportfolio.registryapi.modules.user.repositories.UserRepo;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 public class UpdateUserTests {
+
 	@Autowired
 	private MockMvc mockMvc;
 
@@ -64,20 +60,28 @@ public class UpdateUserTests {
 		var mapper = new ObjectMapper();
 		String json = mapper.writeValueAsString(body);
 
-		ResultActions res = this.mockMvc.perform(patch("/user")
-				.content(json)
-				.contentType(MediaType.APPLICATION_JSON)
-				.header("Authorization", "Bearer " + accessToken));
+		ResultActions res =
+			this.mockMvc.perform(
+					patch("/user")
+						.content(json)
+						.contentType(MediaType.APPLICATION_JSON)
+						.header("Authorization", "Bearer " + accessToken)
+				);
 
-		res.andExpect(status().isOk())
+		res
+			.andExpect(status().isOk())
 			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 			.andExpect(jsonPath("$.accessToken").isString())
 			.andExpect(header().exists("set-cookie"));
 
 		String jsonRes = res.andReturn().getResponse().getContentAsString();
-		LoginResponseDTO resBody = mapper.readValue(jsonRes, LoginResponseDTO.class);
+		LoginResponseDTO resBody = mapper.readValue(
+			jsonRes,
+			LoginResponseDTO.class
+		);
 
-		TokenPayloadEntity payload = this.decodeToken(mapper, resBody.accessToken());
+		TokenPayloadEntity payload =
+			this.decodeToken(mapper, resBody.accessToken());
 
 		assertThat(payload.getFullName()).isEqualTo(newFullName);
 		assertThat(payload.getDescription()).isEqualTo(newDescription);
@@ -88,9 +92,12 @@ public class UpdateUserTests {
 	void badRequestCase() throws Exception {
 		String accessToken = this.createUser();
 
-		ResultActions res = this.mockMvc.perform(patch("/user")
-				.contentType(MediaType.APPLICATION_JSON)
-				.header("Authorization", "Bearer " + accessToken));
+		ResultActions res =
+			this.mockMvc.perform(
+					patch("/user")
+						.contentType(MediaType.APPLICATION_JSON)
+						.header("Authorization", "Bearer " + accessToken)
+				);
 
 		res.andExpect(status().isBadRequest());
 	}
@@ -98,18 +105,24 @@ public class UpdateUserTests {
 	@Test
 	@DisplayName("it should throw a unauthorized")
 	void unauthorizedCase() throws Exception {
-		ResultActions res = this.mockMvc.perform(patch("/user")
-				.contentType(MediaType.APPLICATION_JSON));
+		ResultActions res =
+			this.mockMvc.perform(
+					patch("/user").contentType(MediaType.APPLICATION_JSON)
+				);
 
 		res.andExpect(status().isForbidden());
 	}
 
-	private TokenPayloadEntity decodeToken(ObjectMapper mapper, String token) throws Exception {
+	private TokenPayloadEntity decodeToken(ObjectMapper mapper, String token)
+		throws Exception {
 		String payload = JWT.decode(token).getPayload();
 		Decoder base64Decoder = Base64.getUrlDecoder();
 		String decodedPayload = new String(base64Decoder.decode(payload));
 
-		var decodedToken = mapper.readValue(decodedPayload, TokenPayloadEntity.class);
+		var decodedToken = mapper.readValue(
+			decodedPayload,
+			TokenPayloadEntity.class
+		);
 		return decodedToken;
 	}
 
@@ -123,18 +136,24 @@ public class UpdateUserTests {
 		var mapper = new ObjectMapper();
 		String json = mapper.writeValueAsString(body);
 
-		ResultActions res = this.mockMvc
-			.perform(post("/user")
-				.content(json)
-				.contentType(MediaType.APPLICATION_JSON));
+		ResultActions res =
+			this.mockMvc.perform(
+					post("/user")
+						.content(json)
+						.contentType(MediaType.APPLICATION_JSON)
+				);
 
-		res.andExpect(status().isCreated())
+		res
+			.andExpect(status().isCreated())
 			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 			.andExpect(jsonPath("$.accessToken").isString())
 			.andExpect(header().exists("set-cookie"));
 
 		String resBody = res.andReturn().getResponse().getContentAsString();
-		LoginResponseDTO resJson = mapper.readValue(resBody, LoginResponseDTO.class);
+		LoginResponseDTO resJson = mapper.readValue(
+			resBody,
+			LoginResponseDTO.class
+		);
 		return resJson.accessToken();
 	}
 }

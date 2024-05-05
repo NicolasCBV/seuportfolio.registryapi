@@ -1,5 +1,12 @@
 package com.seuportfolio.registryapi.modules.user.useCases;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import com.seuportfolio.registryapi.modules.user.presentation.dto.CreateUserDTO;
+import com.seuportfolio.registryapi.modules.user.repositories.UserRepo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -9,15 +16,8 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
-import com.seuportfolio.registryapi.modules.user.presentation.dto.CreateUserDTO;
-import com.seuportfolio.registryapi.modules.user.repositories.UserRepo;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 public class CreateUserUseCaseTests {
+
 	@Mock
 	@Autowired
 	private UserRepo userRepo;
@@ -43,9 +43,10 @@ public class CreateUserUseCaseTests {
 			.fullName("John Doe")
 			.password("123456")
 			.build();
-		
-		when(this.bCryptPasswordEncoder.encode(dto.getPassword()))
-			.thenReturn(dto.getPassword());
+
+		when(this.bCryptPasswordEncoder.encode(dto.getPassword())).thenReturn(
+			dto.getPassword()
+		);
 
 		var user = this.createUserUseCase.exec(dto);
 		assertThat(user.getFullName() == dto.getFullName()).isTrue();

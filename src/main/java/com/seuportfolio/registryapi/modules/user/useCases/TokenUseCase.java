@@ -1,27 +1,25 @@
 package com.seuportfolio.registryapi.modules.user.useCases;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.LinkedHashMap;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.seuportfolio.registryapi.modules.user.modals.UserEntity;
-
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.LinkedHashMap;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Service
 public class TokenUseCase {
+
 	@Value("${api.security.token.secret}")
 	private String secret;
 
@@ -63,6 +61,8 @@ public class TokenUseCase {
 	}
 
 	private Instant generateExpirationDate() {
-		return LocalDateTime.now().plusHours(this.hour).toInstant(ZoneOffset.of("-03:00"));
+		return LocalDateTime.now(ZoneOffset.UTC)
+			.plusHours(this.hour)
+			.toInstant(ZoneOffset.of("-03:00"));
 	}
 }
