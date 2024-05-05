@@ -39,6 +39,4 @@ jobs:
         run: mvn -Dmaven.test.skip=true -B package --file pom.xml
 
       - name: Run all tests
-        run: mvn -Dspring.config.location=src/test/resources/application.test.properties test
-        env:
-          ENABLE_MIGRATION: true
+        run: mvn -Dspring.config.location=src/main/resources/application.properties.yml test
