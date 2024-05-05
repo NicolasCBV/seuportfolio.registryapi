@@ -1,0 +1,47 @@
+version: "3.8"
+
+services:
+  db:
+    hostname: db
+    build:
+      dockerfile: Dockerfile
+      context: ./src/main/resources/db
+    ports:
+      - 8888:5432
+
+  app:
+    hostname: registryapi
+    depends_on:
+      - db
+    build:
+      dockerfile: Dockerfile
+      context: .
+    ports:
+      - ${PORT}:${PORT}
+    environment:
+      - SEU_PORTFOLIO_REGISTRYAPI_PORT=${PORT}
+      - SEU_PORTFOLIO_REGISTRYAPI_APP_NAME=${APP_NAME}
+      - SEU_PORTFOLIO_REGISTRYAPI_DB_HOSTNAME=${DB_HOSTNAME}
+      - SEU_PORTFOLIO_REGISTRYAPI_DB_PORT=${DB_PORT}
+      - SEU_PORTFOLIO_REGISTRYAPI_DB_PATH=${DB_PATH}
+      - SEU_PORTFOLIO_REGISTRYAPI_DB_USERNAME=${DB_USERNAME}
+      - SEU_PORTFOLIO_REGISTRYAPI_DB_PASSWORD=${DB_PASSWORD}
+      - SEU_PORTFOLIO_REGISTRYAPI_ACCESS_TOKEN_SECRET=${ACCESS_TOKEN_SECRET}
+      - SEU_PORTFOLIO_REGISTRYAPI_ACCESS_TOKEN_EXP=${ACCESS_TOKEN_EXP}
+      - SEU_PORTFOLIO_REGISTRYAPI_REFRESH_TOKEN_SECRET=${REFRESH_TOKEN_SECRET}
+      - SEU_PORTFOLIO_REGISTRYAPI_REFRESH_TOKEN_EXP=${REFRESH_TOKEN_EXP}
+      - SEU_PORTFOLIO_REGISTRYAPI_REFRESH_TOKEN_SECURE=${REFRESH_TOKEN_SECURE}
+      - SEU_PORTFOLIO_REGISTRYAPI_REFRESH_TOKEN_DOMAIN=${REFRESH_TOKEN_DOMAIN}
+      - SEU_PORTFOLIO_REGISTRYAPI_REFRESH_TOKEN_HTTP_ONLY=${REFRESH_TOKEN_HTTP_ONLY}
+      - SEU_PORTFOLIO_REGISTRYAPI_SHOW_SQL=${SHOW_SQL}
+      - SEU_PORTFOLIO_REGISTRYAPI_ENABLE_MIGRATION=${ENABLE_MIGRATION}
+      - SEU_PORTFOLIO_REGISTRYAPI_EXPOSE_HEALTH=${EXPOSE_HEALTH}
+  playwright:
+    depends_on:
+      - db
+      - app
+    build:
+      dockerfile: dockerfile
+      context: playwright
+    environment:
+      - BASE_URL=http://registryapi:${PORT}
