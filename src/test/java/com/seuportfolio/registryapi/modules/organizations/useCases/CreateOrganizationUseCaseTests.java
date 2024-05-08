@@ -4,8 +4,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.seuportfolio.registryapi.modules.organizations.modals.OrganizationEntity;
+import com.seuportfolio.registryapi.modules.organizations.modals.OrganizationTagEntity;
 import com.seuportfolio.registryapi.modules.organizations.presentation.dto.CreateOrganizationDTO;
 import com.seuportfolio.registryapi.modules.organizations.repositories.OrganizationRepo;
+import com.seuportfolio.registryapi.modules.organizations.repositories.OrganizationTagRepo;
 import com.seuportfolio.registryapi.modules.user.modals.UserEntity;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +23,9 @@ public class CreateOrganizationUseCaseTests {
 
 	@Mock
 	private OrganizationRepo organizationRepo;
+
+	@Mock
+	private OrganizationTagRepo organizationTagRepo;
 
 	@Autowired
 	@InjectMocks
@@ -50,6 +55,13 @@ public class CreateOrganizationUseCaseTests {
 			.build();
 
 		OrganizationEntity org = this.createOrganizationUseCase.exec(dto, user);
+
+		var tagEntity = OrganizationTagEntity.builder()
+			.name(tags.get(0))
+			.organizationEntity(org)
+			.build();
+
 		verify(this.organizationRepo, times(1)).save(org);
+		verify(this.organizationTagRepo, times(1)).save(tagEntity);
 	}
 }
