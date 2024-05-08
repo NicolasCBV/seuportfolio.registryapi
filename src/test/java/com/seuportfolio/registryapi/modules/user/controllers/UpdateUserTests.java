@@ -8,13 +8,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.auth0.jwt.JWT;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.seuportfolio.registryapi.modules.user.modals.TokenPayloadEntity;
 import com.seuportfolio.registryapi.modules.user.presentation.dto.CreateUserDTO;
 import com.seuportfolio.registryapi.modules.user.presentation.dto.LoginResponseDTO;
 import com.seuportfolio.registryapi.modules.user.presentation.dto.UpdateUserDTO;
 import com.seuportfolio.registryapi.modules.user.repositories.UserRepo;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Base64.Decoder;
 import org.junit.jupiter.api.BeforeEach;
@@ -115,9 +115,12 @@ public class UpdateUserTests {
 
 	private TokenPayloadEntity decodeToken(ObjectMapper mapper, String token)
 		throws Exception {
-		String payload = JWT.decode(token).getPayload();
+		String payload = token.split("\\.", 4)[1];
 		Decoder base64Decoder = Base64.getUrlDecoder();
-		String decodedPayload = new String(base64Decoder.decode(payload));
+		String decodedPayload = new String(
+			base64Decoder.decode(payload),
+			StandardCharsets.UTF_8
+		);
 
 		var decodedToken = mapper.readValue(
 			decodedPayload,

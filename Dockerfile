@@ -6,7 +6,7 @@ WORKDIR /home/registryapi
 ENV PORT=8080
 
 COPY target/*.jar app.jar
-COPY src/main/resources/application.prod.properties application.properties
+COPY src/main/resources/application-prod.properties application.properties
 
 EXPOSE ${PORT}
 
