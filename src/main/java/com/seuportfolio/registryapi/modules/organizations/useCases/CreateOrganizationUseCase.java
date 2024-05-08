@@ -4,10 +4,9 @@ import com.seuportfolio.registryapi.modules.organizations.modals.OrganizationEnt
 import com.seuportfolio.registryapi.modules.organizations.modals.OrganizationTagEntity;
 import com.seuportfolio.registryapi.modules.organizations.presentation.dto.CreateOrganizationDTO;
 import com.seuportfolio.registryapi.modules.organizations.repositories.OrganizationRepo;
+import com.seuportfolio.registryapi.modules.organizations.repositories.OrganizationTagRepo;
 import com.seuportfolio.registryapi.modules.user.modals.UserEntity;
 import jakarta.transaction.Transactional;
-import java.util.ArrayList;
-import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +16,9 @@ public class CreateOrganizationUseCase {
 	@Autowired
 	private OrganizationRepo organizationRepo;
 
+	@Autowired
+	private OrganizationTagRepo organizationTagRepo;
+
 	@Transactional
 	public OrganizationEntity exec(CreateOrganizationDTO dto, UserEntity user) {
 		var org = OrganizationEntity.builder()
@@ -25,17 +27,15 @@ public class CreateOrganizationUseCase {
 			.userEntity(user)
 			.build();
 
-		List<OrganizationTagEntity> tags = new ArrayList<
-			OrganizationTagEntity
-		>();
-		for (String tag : dto.getTags()) tags.add(
-			OrganizationTagEntity.builder()
+		this.organizationRepo.save(org);
+
+		for (String tag : dto.getTags()) {
+			var tagEntity = OrganizationTagEntity.builder()
 				.name(tag)
 				.organizationEntity(org)
-				.build()
-		);
-
-		this.organizationRepo.save(org);
+				.build();
+			this.organizationTagRepo.save(tagEntity);
+		}
 		return org;
 	}
 }
