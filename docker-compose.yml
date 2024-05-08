@@ -10,6 +10,9 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=db
+    volumes:
+      - db:/var/lib/postgresql/data
+
   app:
     depends_on:
       - db
@@ -35,3 +38,7 @@ services:
       - SEU_PORTFOLIO_REGISTRYAPI_REFRESH_TOKEN_HTTP_ONLY=true
       - SEU_PORTFOLIO_REGISTRYAPI_SHOW_SQL=true
       - SEU_PORTFOLIO_REGISTRYAPI_EXPOSE_HEALTH=health
+
+volumes:
+  db:
+    driver: local

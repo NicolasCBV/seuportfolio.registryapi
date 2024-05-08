@@ -49,9 +49,9 @@ public class CreateUserUseCaseTests {
 		);
 
 		var user = this.createUserUseCase.exec(dto);
-		assertThat(user.getFullName() == dto.getFullName()).isTrue();
-		assertThat(user.getEmail() == dto.getEmail()).isTrue();
-		assertThat(user.getPassword() == dto.getPassword()).isTrue();
+		assertThat(user.getFullName().equals(dto.getFullName())).isTrue();
+		assertThat(user.getEmail().equals(dto.getEmail())).isTrue();
+		assertThat(user.getPassword().equals(dto.getPassword())).isTrue();
 
 		verify(this.userRepo, times(1)).save(user);
 	}

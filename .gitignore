@@ -33,7 +33,4 @@ build/
 .vscode/
 
 ### Custom ####
-*.properties
-!*.prod.properties
-!*.test.properties
 node_modules/

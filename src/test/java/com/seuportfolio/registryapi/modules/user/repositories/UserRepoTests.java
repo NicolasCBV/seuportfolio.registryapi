@@ -41,8 +41,8 @@ class UserRepoTests {
 		String actualDescription = searchedUser.get().getDescription();
 		String actualFullName = searchedUser.get().getFullName();
 
-		assertThat(actualFullName == newFullName).isTrue();
-		assertThat(actualDescription == newDescription).isTrue();
+		assertThat(newFullName.equals(actualFullName)).isTrue();
+		assertThat(newDescription.equals(actualDescription)).isTrue();
 	}
 
 	private UserEntity createUser() {

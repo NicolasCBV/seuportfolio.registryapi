@@ -1,10 +1,15 @@
 package com.seuportfolio.registryapi.modules.user.modals;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.seuportfolio.registryapi.modules.organizations.modals.OrganizationEntity;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -31,6 +36,7 @@ public class UserEntity implements UserDetails {
 	private UUID id;
 
 	@Column(nullable = false, name = "full_name")
+	@JsonProperty("full_name")
 	private String fullName;
 
 	@Column(nullable = true, length = 120)
@@ -39,16 +45,22 @@ public class UserEntity implements UserDetails {
 	@Column(unique = true, length = 320, nullable = false)
 	private String email;
 
-	@Column(length = 60, nullable = false)
+	@Column(columnDefinition = "CHAR(60)", nullable = false)
 	private String password;
 
 	@CreationTimestamp
-	@Column(name = "created_at")
+	@Column(name = "created_at", nullable = false)
+	@JsonProperty("created_at")
 	private LocalDateTime createdAt;
 
 	@UpdateTimestamp
-	@Column(name = "updated_at")
+	@Column(name = "updated_at", nullable = false)
+	@JsonProperty("updated_at")
 	private LocalDateTime updatedAt;
+
+	@OneToMany(mappedBy = "userEntity", cascade = CascadeType.REMOVE)
+	@JsonManagedReference
+	private List<OrganizationEntity> organizationEntity;
 
 	@Override
 	protected Object clone() throws CloneNotSupportedException {
