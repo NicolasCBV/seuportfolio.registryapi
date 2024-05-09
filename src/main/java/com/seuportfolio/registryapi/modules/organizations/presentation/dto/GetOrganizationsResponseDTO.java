@@ -1,7 +1,7 @@
 package com.seuportfolio.registryapi.modules.organizations.presentation.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.seuportfolio.registryapi.modules.organizations.modals.OrganizationEntity;
+import com.seuportfolio.registryapi.modules.globals.modals.BaseContentEntity;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,5 +15,5 @@ import lombok.NoArgsConstructor;
 public class GetOrganizationsResponseDTO {
 
 	@JsonProperty("organizations")
-	private List<OrganizationEntity> organizations;
+	private List<BaseContentEntity> organizations;
 }

@@ -1,4 +1,4 @@
-package com.seuportfolio.registryapi.modules.organizations.modals;
+package com.seuportfolio.registryapi.modules.globals.modals;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.CascadeType;
@@ -23,14 +23,14 @@ import org.hibernate.annotations.CreationTimestamp;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity(name = "organization_tags")
+@Entity(name = "tags")
 @Table(
 	uniqueConstraints = @UniqueConstraint(
-		columnNames = { "name", "organization_id" },
-		name = "UQ_organization_tags_organization_id_name"
+		columnNames = { "name", "base_content_id" },
+		name = "UQ_tags_name_base_content_id"
 	)
 )
-public class OrganizationTagEntity {
+public class TagEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.UUID)
@@ -45,9 +45,9 @@ public class OrganizationTagEntity {
 
 	@ManyToOne(
 		cascade = { CascadeType.MERGE },
-		targetEntity = OrganizationEntity.class
+		targetEntity = BaseContentEntity.class
 	)
-	@JoinColumn(name = "organization_id", nullable = false)
+	@JoinColumn(name = "base_content_id", nullable = false)
 	@JsonBackReference
-	private OrganizationEntity organizationEntity;
+	private BaseContentEntity baseContentEntity;
 }

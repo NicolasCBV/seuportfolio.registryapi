@@ -2,7 +2,7 @@ package com.seuportfolio.registryapi.modules.user.modals;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.seuportfolio.registryapi.modules.organizations.modals.OrganizationEntity;
+import com.seuportfolio.registryapi.modules.globals.modals.BaseContentEntity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -60,7 +60,7 @@ public class UserEntity implements UserDetails {
 
 	@OneToMany(mappedBy = "userEntity", cascade = CascadeType.REMOVE)
 	@JsonManagedReference
-	private List<OrganizationEntity> organizationEntity;
+	private List<BaseContentEntity> baseContentEntity;
 
 	@Override
 	protected Object clone() throws CloneNotSupportedException {

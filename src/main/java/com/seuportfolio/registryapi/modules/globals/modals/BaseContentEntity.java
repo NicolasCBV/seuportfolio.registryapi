@@ -1,4 +1,4 @@
-package com.seuportfolio.registryapi.modules.organizations.modals;
+package com.seuportfolio.registryapi.modules.globals.modals;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -32,11 +32,11 @@ import org.hibernate.annotations.UpdateTimestamp;
 @Table(
 	uniqueConstraints = @UniqueConstraint(
 		columnNames = { "name", "user_id" },
-		name = "UQ_organizations_name_user_id"
+		name = "UQ_base_content_name_user_id"
 	)
 )
-@Entity(name = "organizations")
-public class OrganizationEntity {
+@Entity(name = "base_contents")
+public class BaseContentEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.UUID)
@@ -63,11 +63,14 @@ public class OrganizationEntity {
 	@JsonBackReference
 	private UserEntity userEntity;
 
+	@Column(nullable = false, columnDefinition = "SMALLINT")
+	private short category;
+
 	@OneToMany(
-		mappedBy = "organizationEntity",
+		mappedBy = "baseContentEntity",
 		cascade = { CascadeType.REMOVE, CascadeType.REFRESH }
 	)
-	@JsonProperty("organization_tags")
+	@JsonProperty("tags")
 	@JsonManagedReference
-	private List<OrganizationTagEntity> organizationTagEntity;
+	private List<TagEntity> tagEntity;
 }

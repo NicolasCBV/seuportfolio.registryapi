@@ -1,7 +1,8 @@
 package com.seuportfolio.registryapi.modules.organizations.useCases;
 
-import com.seuportfolio.registryapi.modules.organizations.modals.OrganizationEntity;
-import com.seuportfolio.registryapi.modules.organizations.modals.OrganizationTagEntity;
+import com.seuportfolio.registryapi.modules.globals.modals.BaseContentCategoryEnum;
+import com.seuportfolio.registryapi.modules.globals.modals.BaseContentEntity;
+import com.seuportfolio.registryapi.modules.globals.modals.TagEntity;
 import com.seuportfolio.registryapi.modules.organizations.presentation.dto.CreateOrganizationDTO;
 import com.seuportfolio.registryapi.modules.organizations.repositories.OrganizationRepo;
 import com.seuportfolio.registryapi.modules.organizations.repositories.OrganizationTagRepo;
@@ -20,19 +21,20 @@ public class CreateOrganizationUseCase {
 	private OrganizationTagRepo organizationTagRepo;
 
 	@Transactional
-	public OrganizationEntity exec(CreateOrganizationDTO dto, UserEntity user) {
-		var org = OrganizationEntity.builder()
+	public BaseContentEntity exec(CreateOrganizationDTO dto, UserEntity user) {
+		var org = BaseContentEntity.builder()
 			.name(dto.getName())
 			.description(dto.getDescription())
 			.userEntity(user)
+			.category(BaseContentCategoryEnum.ORGANIZATION.getValue())
 			.build();
 
 		this.organizationRepo.save(org);
 
 		for (String tag : dto.getTags()) {
-			var tagEntity = OrganizationTagEntity.builder()
+			var tagEntity = TagEntity.builder()
 				.name(tag)
-				.organizationEntity(org)
+				.baseContentEntity(org)
 				.build();
 			this.organizationTagRepo.save(tagEntity);
 		}

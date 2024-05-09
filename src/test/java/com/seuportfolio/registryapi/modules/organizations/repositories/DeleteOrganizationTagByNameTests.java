@@ -2,8 +2,8 @@ package com.seuportfolio.registryapi.modules.organizations.repositories;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.seuportfolio.registryapi.modules.organizations.modals.OrganizationEntity;
-import com.seuportfolio.registryapi.modules.organizations.modals.OrganizationTagEntity;
+import com.seuportfolio.registryapi.modules.globals.modals.BaseContentEntity;
+import com.seuportfolio.registryapi.modules.globals.modals.TagEntity;
 import com.seuportfolio.registryapi.modules.user.modals.UserEntity;
 import com.seuportfolio.registryapi.modules.user.repositories.UserRepo;
 import jakarta.persistence.EntityManager;
@@ -48,12 +48,12 @@ public class DeleteOrganizationTagByNameTests {
 			.build();
 
 		var map = this.createOrganization(user);
-		var org = (OrganizationEntity) map.get("org");
-		var tag = (OrganizationTagEntity) map.get("tagList");
+		var org = (BaseContentEntity) map.get("org");
+		var tag = (TagEntity) map.get("tagList");
 
 		this.organizationTagRepo.deleteByName(org.getId(), "tag name");
 
-		Optional<OrganizationTagEntity> optSearchedTag =
+		Optional<TagEntity> optSearchedTag =
 			this.organizationTagRepo.findById(tag.getId());
 
 		assertThat(optSearchedTag.isEmpty()).isTrue();
@@ -64,21 +64,19 @@ public class DeleteOrganizationTagByNameTests {
 
 		Map<String, Object> returnableItem = new HashMap<String, Object>();
 
-		var tag = OrganizationTagEntity.builder()
+		var tag = TagEntity.builder()
 			.id(UUID.randomUUID())
 			.name("tag name")
 			.build();
-		List<OrganizationTagEntity> tagList = new ArrayList<
-			OrganizationTagEntity
-		>(1);
+		List<TagEntity> tagList = new ArrayList<TagEntity>(1);
 		tagList.add(tag);
 		returnableItem.put("tagList", tagList.get(0));
 
-		var organization = OrganizationEntity.builder()
+		var organization = BaseContentEntity.builder()
 			.name("org name")
 			.description("description")
 			.userEntity(user)
-			.organizationTagEntity(tagList)
+			.tagEntity(tagList)
 			.build();
 		returnableItem.put("org", organization);
 

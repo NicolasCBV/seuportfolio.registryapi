@@ -1,6 +1,6 @@
 package com.seuportfolio.registryapi.modules.organizations.presentation.controllers;
 
-import com.seuportfolio.registryapi.modules.organizations.modals.OrganizationEntity;
+import com.seuportfolio.registryapi.modules.globals.modals.BaseContentEntity;
 import com.seuportfolio.registryapi.modules.organizations.presentation.dto.CreateOrganizationDTO;
 import com.seuportfolio.registryapi.modules.organizations.presentation.dto.GetOrganizationsResponseDTO;
 import com.seuportfolio.registryapi.modules.organizations.presentation.dto.UpdateOrganizationDTO;
@@ -84,8 +84,10 @@ public class OrganizationController {
 		UserEntity user = (UserEntity) SecurityContextHolder.getContext()
 			.getAuthentication()
 			.getPrincipal();
-		List<OrganizationEntity> orgs =
+
+		List<BaseContentEntity> orgs =
 			this.getOrganizationsUseCase.exec(offset, user);
+
 		GetOrganizationsResponseDTO body = GetOrganizationsResponseDTO.builder()
 			.organizations(orgs)
 			.build();

@@ -5,8 +5,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.seuportfolio.registryapi.modules.organizations.modals.OrganizationEntity;
-import com.seuportfolio.registryapi.modules.organizations.modals.OrganizationTagEntity;
+import com.seuportfolio.registryapi.modules.globals.modals.BaseContentEntity;
+import com.seuportfolio.registryapi.modules.globals.modals.TagEntity;
 import com.seuportfolio.registryapi.modules.organizations.presentation.dto.OrganizationChangesDTO;
 import com.seuportfolio.registryapi.modules.organizations.presentation.dto.UpdateOrganizationDTO;
 import com.seuportfolio.registryapi.modules.organizations.repositories.OrganizationRepo;
@@ -54,7 +54,7 @@ public class UpdateOrganizationUseCaseTests {
 			.password("123456")
 			.build();
 		var org = Optional.of(
-			OrganizationEntity.builder()
+			BaseContentEntity.builder()
 				.id(organizationId)
 				.name("org name")
 				.description("org description")
@@ -89,9 +89,9 @@ public class UpdateOrganizationUseCaseTests {
 			organizationId
 		);
 
-		var tag = OrganizationTagEntity.builder()
+		var tag = TagEntity.builder()
 			.name("new tag")
-			.organizationEntity(org.get())
+			.baseContentEntity(org.get())
 			.build();
 		verify(this.organizationTagRepo, times(1)).save(tag);
 
