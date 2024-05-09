@@ -1,7 +1,7 @@
 package com.seuportfolio.registryapi.modules.organizations.useCases;
 
-import com.seuportfolio.registryapi.modules.organizations.modals.OrganizationEntity;
-import com.seuportfolio.registryapi.modules.organizations.modals.OrganizationTagEntity;
+import com.seuportfolio.registryapi.modules.globals.modals.BaseContentEntity;
+import com.seuportfolio.registryapi.modules.globals.modals.TagEntity;
 import com.seuportfolio.registryapi.modules.organizations.presentation.dto.OrganizationChangesDTO;
 import com.seuportfolio.registryapi.modules.organizations.presentation.dto.UpdateOrganizationDTO;
 import com.seuportfolio.registryapi.modules.organizations.repositories.OrganizationRepo;
@@ -27,7 +27,7 @@ public class UpdateOrganizationUseCase {
 	@Transactional
 	public void exec(UpdateOrganizationDTO dto) throws UseCaseException {
 		UUID organizationId = UUID.fromString(dto.getOrganizationId());
-		Optional<OrganizationEntity> optOrg =
+		Optional<BaseContentEntity> optOrg =
 			this.organizationRepo.findById(organizationId);
 		if (optOrg.isEmpty()) throw new UseCaseException(
 			"Organization not found",
@@ -42,7 +42,7 @@ public class UpdateOrganizationUseCase {
 	}
 
 	private void updateOrganization(
-		OrganizationEntity org,
+		BaseContentEntity org,
 		OrganizationChangesDTO dto
 	) {
 		if (dto != null) this.organizationRepo.updateOrganization(
@@ -62,13 +62,13 @@ public class UpdateOrganizationUseCase {
 	}
 
 	private void tryUpdateTags(
-		OrganizationEntity org,
+		BaseContentEntity org,
 		List<String> tagsToUpdate
 	) {
 		if (tagsToUpdate != null) for (String tagsToAdd : tagsToUpdate) {
-			var tag = OrganizationTagEntity.builder()
+			var tag = TagEntity.builder()
 				.name(tagsToAdd)
-				.organizationEntity(org)
+				.baseContentEntity(org)
 				.build();
 			this.organizationTagRepo.save(tag);
 		}

@@ -8,7 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.seuportfolio.registryapi.modules.organizations.modals.OrganizationEntity;
+import com.seuportfolio.registryapi.modules.globals.modals.BaseContentEntity;
 import com.seuportfolio.registryapi.modules.organizations.repositories.OrganizationRepo;
 import com.seuportfolio.registryapi.modules.user.modals.TokenPayloadEntity;
 import com.seuportfolio.registryapi.modules.user.modals.UserEntity;
@@ -79,9 +79,7 @@ public class GetOrganizationsTests {
 			.andExpect(jsonPath("$.organizations[0].description").isString())
 			.andExpect(jsonPath("$.organizations[0].created_at").isString())
 			.andExpect(jsonPath("$.organizations[0].updated_at").isString())
-			.andExpect(
-				jsonPath("$.organizations[0].organization_tags").isArray()
-			);
+			.andExpect(jsonPath("$.organizations[0].tags").isArray());
 	}
 
 	private TokenPayloadEntity decodeToken(String token, ObjectMapper mapper)
@@ -130,14 +128,14 @@ public class GetOrganizationsTests {
 		return resBody;
 	}
 
-	private List<OrganizationEntity> createOrg(String email) {
+	private List<BaseContentEntity> createOrg(String email) {
 		Optional<UserEntity> user = this.userRepo.findByEmail(email);
 		assertThat(user.isEmpty()).isFalse();
 
-		List<OrganizationEntity> orgs = new ArrayList<OrganizationEntity>();
+		List<BaseContentEntity> orgs = new ArrayList<BaseContentEntity>();
 
 		for (int i = 0; i < 10; i++) {
-			var org = OrganizationEntity.builder()
+			var org = BaseContentEntity.builder()
 				.name("org:" + i)
 				.description("Simple description")
 				.userEntity(user.get())

@@ -2,7 +2,7 @@ package com.seuportfolio.registryapi.modules.organizations.repositories;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.seuportfolio.registryapi.modules.organizations.modals.OrganizationEntity;
+import com.seuportfolio.registryapi.modules.globals.modals.BaseContentEntity;
 import com.seuportfolio.registryapi.modules.user.modals.UserEntity;
 import com.seuportfolio.registryapi.modules.user.repositories.UserRepo;
 import jakarta.persistence.EntityManager;
@@ -51,7 +51,7 @@ public class UpdateOrganizationTests {
 				org.getId()
 			);
 
-		Optional<OrganizationEntity> optUpdatedOrg =
+		Optional<BaseContentEntity> optUpdatedOrg =
 			this.organizationRepo.findById(org.getId());
 
 		assertThat(optUpdatedOrg.isEmpty()).isFalse();
@@ -61,8 +61,8 @@ public class UpdateOrganizationTests {
 		assertThat(updatedOrg.getDescription()).isEqualTo(newDescription);
 	}
 
-	private OrganizationEntity createOrganization(UserEntity user) {
-		var org = OrganizationEntity.builder()
+	private BaseContentEntity createOrganization(UserEntity user) {
+		var org = BaseContentEntity.builder()
 			.name("org name")
 			.description("description")
 			.userEntity(user)

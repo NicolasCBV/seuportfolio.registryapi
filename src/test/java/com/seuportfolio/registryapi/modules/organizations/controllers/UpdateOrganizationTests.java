@@ -8,7 +8,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.seuportfolio.registryapi.modules.organizations.modals.OrganizationEntity;
+import com.seuportfolio.registryapi.modules.globals.modals.BaseContentEntity;
+import com.seuportfolio.registryapi.modules.globals.repositories.BaseContentRepo;
 import com.seuportfolio.registryapi.modules.organizations.presentation.dto.OrganizationChangesDTO;
 import com.seuportfolio.registryapi.modules.organizations.presentation.dto.UpdateOrganizationDTO;
 import com.seuportfolio.registryapi.modules.organizations.repositories.OrganizationRepo;
@@ -48,6 +49,9 @@ public class UpdateOrganizationTests {
 	@Autowired
 	private OrganizationRepo organizationRepo;
 
+	@Autowired
+	private BaseContentRepo baseContentRepo;
+
 	@BeforeEach
 	void flushAll() {
 		this.userRepo.deleteAll();
@@ -65,7 +69,7 @@ public class UpdateOrganizationTests {
 			this.userRepo.findByEmail(decodedToken.getSub());
 		assertThat(optUser.isEmpty()).isFalse();
 
-		OrganizationEntity org = this.createOrg(optUser.get());
+		BaseContentEntity org = this.createOrg(optUser.get());
 
 		var organizationChanges = OrganizationChangesDTO.builder()
 			.name("new org name")
@@ -165,16 +169,16 @@ public class UpdateOrganizationTests {
 		return resBody;
 	}
 
-	private OrganizationEntity createOrg(UserEntity user) throws Exception {
-		var org = OrganizationEntity.builder()
+	private BaseContentEntity createOrg(UserEntity user) throws Exception {
+		var org = BaseContentEntity.builder()
 			.name("org name")
 			.description("description")
 			.userEntity(user)
 			.build();
 		this.organizationRepo.save(org);
 
-		Optional<OrganizationEntity> optSearchedOrg =
-			this.organizationRepo.findByName(org.getName());
+		Optional<BaseContentEntity> optSearchedOrg =
+			this.baseContentRepo.findByName(org.getName());
 		assertThat(optSearchedOrg.isEmpty()).isFalse();
 
 		return optSearchedOrg.get();

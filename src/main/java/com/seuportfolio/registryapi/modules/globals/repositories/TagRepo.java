@@ -1,4 +1,4 @@
-package com.seuportfolio.registryapi.modules.organizations.repositories;
+package com.seuportfolio.registryapi.modules.globals.repositories;
 
 import com.seuportfolio.registryapi.modules.globals.modals.TagEntity;
 import java.util.UUID;
@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface OrganizationTagRepo extends JpaRepository<TagEntity, UUID> {
+public interface TagRepo extends JpaRepository<TagEntity, UUID> {
 	@Modifying(clearAutomatically = true)
 	@Query(
 		"DELETE FROM tags t " +

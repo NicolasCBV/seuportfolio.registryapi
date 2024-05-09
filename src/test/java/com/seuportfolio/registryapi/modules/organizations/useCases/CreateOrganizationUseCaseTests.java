@@ -3,8 +3,8 @@ package com.seuportfolio.registryapi.modules.organizations.useCases;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.seuportfolio.registryapi.modules.organizations.modals.OrganizationEntity;
-import com.seuportfolio.registryapi.modules.organizations.modals.OrganizationTagEntity;
+import com.seuportfolio.registryapi.modules.globals.modals.BaseContentEntity;
+import com.seuportfolio.registryapi.modules.globals.modals.TagEntity;
 import com.seuportfolio.registryapi.modules.organizations.presentation.dto.CreateOrganizationDTO;
 import com.seuportfolio.registryapi.modules.organizations.repositories.OrganizationRepo;
 import com.seuportfolio.registryapi.modules.organizations.repositories.OrganizationTagRepo;
@@ -54,11 +54,11 @@ public class CreateOrganizationUseCaseTests {
 			.tags(tags)
 			.build();
 
-		OrganizationEntity org = this.createOrganizationUseCase.exec(dto, user);
+		BaseContentEntity org = this.createOrganizationUseCase.exec(dto, user);
 
-		var tagEntity = OrganizationTagEntity.builder()
+		var tagEntity = TagEntity.builder()
 			.name(tags.get(0))
-			.organizationEntity(org)
+			.baseContentEntity(org)
 			.build();
 
 		verify(this.organizationRepo, times(1)).save(org);
