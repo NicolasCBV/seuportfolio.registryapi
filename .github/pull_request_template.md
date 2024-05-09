@@ -6,5 +6,6 @@
 - [ ] Documentation updates
 - [ ] Tests updates
 - [ ] CI/CD pipelines updates
+- [ ] Other:
 
 ## This PR has a breaking change? If yes, where?
