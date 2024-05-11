@@ -8,8 +8,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.seuportfolio.registryapi.modules.globals.modals.BaseContentCategoryEnum;
 import com.seuportfolio.registryapi.modules.globals.modals.BaseContentEntity;
-import com.seuportfolio.registryapi.modules.organizations.repositories.OrganizationRepo;
+import com.seuportfolio.registryapi.modules.globals.repositories.BaseContentRepo;
+import com.seuportfolio.registryapi.modules.organizations.modals.OrganizationAditionalInfoEntity;
 import com.seuportfolio.registryapi.modules.user.modals.TokenPayloadEntity;
 import com.seuportfolio.registryapi.modules.user.modals.UserEntity;
 import com.seuportfolio.registryapi.modules.user.presentation.dto.CreateUserDTO;
@@ -41,7 +43,7 @@ public class GetOrganizationsTests {
 	private MockMvc mockMvc;
 
 	@Autowired
-	private OrganizationRepo organizationRepo;
+	private BaseContentRepo baseContentRepo;
 
 	@Autowired
 	private UserRepo userRepo;
@@ -49,6 +51,7 @@ public class GetOrganizationsTests {
 	@BeforeEach
 	void flushAll() {
 		this.userRepo.deleteAll();
+		this.baseContentRepo.deleteAll();
 	}
 
 	@Test
@@ -79,7 +82,16 @@ public class GetOrganizationsTests {
 			.andExpect(jsonPath("$.organizations[0].description").isString())
 			.andExpect(jsonPath("$.organizations[0].created_at").isString())
 			.andExpect(jsonPath("$.organizations[0].updated_at").isString())
-			.andExpect(jsonPath("$.organizations[0].tags").isArray());
+			.andExpect(
+				jsonPath(
+					"$.organizations[0].organization_aditional_infos.id"
+				).isString()
+			)
+			.andExpect(
+				jsonPath(
+					"$.organizations[0].organization_aditional_infos.site_url"
+				).isString()
+			);
 	}
 
 	private TokenPayloadEntity decodeToken(String token, ObjectMapper mapper)
@@ -135,12 +147,19 @@ public class GetOrganizationsTests {
 		List<BaseContentEntity> orgs = new ArrayList<BaseContentEntity>();
 
 		for (int i = 0; i < 10; i++) {
+			var aditionalInfos = OrganizationAditionalInfoEntity.builder()
+				.siteUrl("http://localhost:8080")
+				.build();
 			var org = BaseContentEntity.builder()
 				.name("org:" + i)
 				.description("Simple description")
 				.userEntity(user.get())
+				.organizationEntity(aditionalInfos)
+				.category(BaseContentCategoryEnum.ORGANIZATION.getValue())
 				.build();
-			this.organizationRepo.save(org);
+			aditionalInfos.setBaseContentEntity(org);
+
+			this.baseContentRepo.save(org);
 			orgs.add(org);
 		}
 

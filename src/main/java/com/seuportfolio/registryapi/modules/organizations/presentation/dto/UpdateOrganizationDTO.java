@@ -1,7 +1,5 @@
 package com.seuportfolio.registryapi.modules.organizations.presentation.dto;
 
-import com.seuportfolio.registryapi.utils.jakarta.validation.UUID;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -14,14 +12,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UpdateOrganizationDTO {
-
-	@NotNull(
-		message = "O número de identificação da organização não pode ser nulo"
-	)
-	@UUID(
-		message = "O número de identificação da organização deve ser um UUID de versão 4"
-	)
-	private String organizationId;
 
 	private OrganizationChangesDTO organizationChanges;
 

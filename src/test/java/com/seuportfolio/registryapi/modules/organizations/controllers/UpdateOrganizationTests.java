@@ -8,16 +8,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.seuportfolio.registryapi.modules.globals.modals.BaseContentCategoryEnum;
 import com.seuportfolio.registryapi.modules.globals.modals.BaseContentEntity;
+import com.seuportfolio.registryapi.modules.globals.modals.TagEntity;
 import com.seuportfolio.registryapi.modules.globals.repositories.BaseContentRepo;
+import com.seuportfolio.registryapi.modules.globals.repositories.TagRepo;
+import com.seuportfolio.registryapi.modules.organizations.modals.OrganizationAditionalInfoEntity;
 import com.seuportfolio.registryapi.modules.organizations.presentation.dto.OrganizationChangesDTO;
 import com.seuportfolio.registryapi.modules.organizations.presentation.dto.UpdateOrganizationDTO;
-import com.seuportfolio.registryapi.modules.organizations.repositories.OrganizationRepo;
 import com.seuportfolio.registryapi.modules.user.modals.TokenPayloadEntity;
 import com.seuportfolio.registryapi.modules.user.modals.UserEntity;
 import com.seuportfolio.registryapi.modules.user.presentation.dto.CreateUserDTO;
 import com.seuportfolio.registryapi.modules.user.presentation.dto.LoginResponseDTO;
 import com.seuportfolio.registryapi.modules.user.repositories.UserRepo;
+import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -47,43 +52,49 @@ public class UpdateOrganizationTests {
 	private UserRepo userRepo;
 
 	@Autowired
-	private OrganizationRepo organizationRepo;
+	private EntityManager entityManager;
+
+	@Autowired
+	private TagRepo tagRepo;
 
 	@Autowired
 	private BaseContentRepo baseContentRepo;
 
+	private String oldTagName = "old tag";
+	private String newTagName = "new tag";
+
 	@BeforeEach
 	void flushAll() {
 		this.userRepo.deleteAll();
+		this.baseContentRepo.deleteAll();
+		this.tagRepo.deleteAll();
 	}
 
 	@Test
 	@DisplayName("it should be able to update organization infos")
+	@Transactional
 	void updateOrganizationSuccessCase() throws Exception {
 		ObjectMapper mapper = new ObjectMapper();
 
 		LoginResponseDTO createUserBody = this.createUser(mapper);
 		TokenPayloadEntity decodedToken =
 			this.decodeToken(createUserBody.accessToken(), mapper);
-		Optional<UserEntity> optUser =
-			this.userRepo.findByEmail(decodedToken.getSub());
-		assertThat(optUser.isEmpty()).isFalse();
 
-		BaseContentEntity org = this.createOrg(optUser.get());
+		BaseContentEntity org = this.createOrg(decodedToken.getSub());
 
 		var organizationChanges = OrganizationChangesDTO.builder()
 			.name("new org name")
 			.description("new org description")
+			.siteUrl("http://new-site")
 			.build();
 
 		List<String> deleteTags = new ArrayList<String>(1);
-		deleteTags.add("old tag");
+		deleteTags.add(oldTagName);
 
 		List<String> insertTags = new ArrayList<String>(1);
-		insertTags.add("new tag");
+		insertTags.add(newTagName);
 
 		var requestBody = UpdateOrganizationDTO.builder()
-			.organizationId(org.getId().toString())
 			.organizationChanges(organizationChanges)
 			.deleteTags(deleteTags)
 			.insertTags(insertTags)
@@ -93,7 +104,7 @@ public class UpdateOrganizationTests {
 
 		ResultActions result =
 			this.mockMvc.perform(
-					patch("/organization")
+					patch("/organization/" + org.getId().toString())
 						.contentType(MediaType.APPLICATION_JSON)
 						.content(requestBodyJson)
 						.header(
@@ -101,8 +112,28 @@ public class UpdateOrganizationTests {
 							"Bearer " + createUserBody.accessToken()
 						)
 				);
-
 		result.andExpect(status().isOk());
+
+		var optSearchedBaseContent = this.baseContentRepo.findById(org.getId());
+		assertThat(optSearchedBaseContent.isEmpty()).isFalse();
+
+		var searchedBaseContent = optSearchedBaseContent.get();
+
+		assertThat(
+			searchedBaseContent.getOrganizationEntity().getSiteUrl()
+		).isEqualTo("http://new-site");
+		assertThat(searchedBaseContent.getName()).isEqualTo("new org name");
+		assertThat(searchedBaseContent.getDescription()).isEqualTo(
+			"new org description"
+		);
+
+		Optional<TagEntity> optSearchedTag =
+			this.tagRepo.findByName(newTagName);
+		assertThat(optSearchedTag.isEmpty()).isFalse();
+
+		Optional<TagEntity> optSearchedDeletedTag =
+			this.tagRepo.findByName(oldTagName);
+		assertThat(optSearchedDeletedTag.isEmpty()).isTrue();
 	}
 
 	@Test
@@ -113,8 +144,9 @@ public class UpdateOrganizationTests {
 
 		ResultActions result =
 			this.mockMvc.perform(
-					patch("/organization")
+					patch("/organization/wrong-id")
 						.contentType(MediaType.APPLICATION_JSON)
+						.content("{}")
 						.header(
 							"Authorization",
 							"Bearer " + createUserResult.accessToken()
@@ -169,13 +201,34 @@ public class UpdateOrganizationTests {
 		return resBody;
 	}
 
-	private BaseContentEntity createOrg(UserEntity user) throws Exception {
+	private BaseContentEntity createOrg(String email) throws Exception {
+		Optional<UserEntity> optUser = this.userRepo.findByEmail(email);
+		assertThat(optUser.isEmpty()).isFalse();
+		var user = optUser.get();
+
+		var aditionalInfos = OrganizationAditionalInfoEntity.builder()
+			.siteUrl("http://localhost:8080")
+			.build();
+
 		var org = BaseContentEntity.builder()
 			.name("org name")
 			.description("description")
 			.userEntity(user)
+			.organizationEntity(aditionalInfos)
+			.category(BaseContentCategoryEnum.ORGANIZATION.getValue())
 			.build();
-		this.organizationRepo.save(org);
+		var tagList = new ArrayList<TagEntity>(2);
+		tagList.add(
+			TagEntity.builder().name(oldTagName).baseContentEntity(org).build()
+		);
+
+		org.setTagEntity(tagList);
+		aditionalInfos.setBaseContentEntity(org);
+
+		var orgList = new ArrayList<BaseContentEntity>(1);
+		orgList.add(org);
+		user.setBaseContentEntity(orgList);
+		this.entityManager.persist(org);
 
 		Optional<BaseContentEntity> optSearchedOrg =
 			this.baseContentRepo.findByName(org.getName());

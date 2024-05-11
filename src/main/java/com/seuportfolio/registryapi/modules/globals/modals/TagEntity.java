@@ -16,8 +16,11 @@ import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.SourceType;
 
 @Data
 @Builder
@@ -39,12 +42,16 @@ public class TagEntity {
 	@Column(length = 60, nullable = false)
 	private String name;
 
-	@CreationTimestamp
-	@Column(name = "created_at", nullable = false)
+	@CreationTimestamp(source = SourceType.DB)
+	@Column(name = "created_at", nullable = false, updatable = false)
 	private LocalDateTime createdAt;
 
+	@ToString.Exclude
+	@EqualsAndHashCode.Exclude
 	@ManyToOne(
-		cascade = { CascadeType.MERGE },
+		cascade = {
+			CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH,
+		},
 		targetEntity = BaseContentEntity.class
 	)
 	@JoinColumn(name = "base_content_id", nullable = false)

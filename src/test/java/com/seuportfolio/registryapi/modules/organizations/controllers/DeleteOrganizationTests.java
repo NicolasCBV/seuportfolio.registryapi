@@ -8,14 +8,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.seuportfolio.registryapi.modules.globals.modals.BaseContentCategoryEnum;
 import com.seuportfolio.registryapi.modules.globals.modals.BaseContentEntity;
 import com.seuportfolio.registryapi.modules.globals.repositories.BaseContentRepo;
-import com.seuportfolio.registryapi.modules.organizations.repositories.OrganizationRepo;
+import com.seuportfolio.registryapi.modules.organizations.modals.OrganizationAditionalInfoEntity;
 import com.seuportfolio.registryapi.modules.user.modals.TokenPayloadEntity;
 import com.seuportfolio.registryapi.modules.user.modals.UserEntity;
 import com.seuportfolio.registryapi.modules.user.presentation.dto.CreateUserDTO;
 import com.seuportfolio.registryapi.modules.user.presentation.dto.LoginResponseDTO;
 import com.seuportfolio.registryapi.modules.user.repositories.UserRepo;
+import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Base64.Decoder;
@@ -40,10 +43,10 @@ public class DeleteOrganizationTests {
 	private MockMvc mockMvc;
 
 	@Autowired
-	private OrganizationRepo organizationRepo;
+	private BaseContentRepo baseContentRepo;
 
 	@Autowired
-	private BaseContentRepo baseContentRepo;
+	private EntityManager entityManager;
 
 	@Autowired
 	private UserRepo userRepo;
@@ -51,10 +54,12 @@ public class DeleteOrganizationTests {
 	@BeforeEach
 	void flushAll() {
 		this.userRepo.deleteAll();
+		this.baseContentRepo.deleteAll();
 	}
 
 	@Test
 	@DisplayName("it should be able to delete organization")
+	@Transactional
 	void deleteOrganizationSuccessCase() throws Exception {
 		ObjectMapper mapper = new ObjectMapper();
 
@@ -79,6 +84,7 @@ public class DeleteOrganizationTests {
 
 	@Test
 	@DisplayName("it should throw bad request")
+	@Transactional
 	void badRequestCase() throws Exception {
 		ObjectMapper mapper = new ObjectMapper();
 
@@ -144,8 +150,15 @@ public class DeleteOrganizationTests {
 			.name("org name")
 			.description("description")
 			.userEntity(user)
+			.category(BaseContentCategoryEnum.ORGANIZATION.getValue())
 			.build();
-		this.organizationRepo.save(org);
+		var orgAditionalInfos = OrganizationAditionalInfoEntity.builder()
+			.siteUrl("http://localhost:8080")
+			.baseContentEntity(org)
+			.build();
+		org.setOrganizationEntity(orgAditionalInfos);
+
+		this.entityManager.persist(org);
 
 		Optional<BaseContentEntity> optSearchedOrg =
 			this.baseContentRepo.findByName(org.getName());

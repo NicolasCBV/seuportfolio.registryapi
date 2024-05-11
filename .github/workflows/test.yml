@@ -1,4 +1,4 @@
-name: Unit Tests & E2E Tests
+name: Tests
 
 on:
   push:
@@ -18,6 +18,6 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
-      - name: Test and build with maven
-        run: mvn -Dspring.profiles.active=test -B package --file pom.xml
+      - name: Test with maven
+        run: mvn clean test
 

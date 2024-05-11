@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.seuportfolio.registryapi.modules.user.modals.UserEntity;
 import jakarta.persistence.EntityManager;
 import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,11 @@ class UserRepoTests {
 
 	@Autowired
 	UserRepo userRepo;
+
+	@BeforeEach
+	void flushAll() {
+		this.userRepo.deleteAll();
+	}
 
 	@Test
 	@DisplayName("it should be able to update user entities")

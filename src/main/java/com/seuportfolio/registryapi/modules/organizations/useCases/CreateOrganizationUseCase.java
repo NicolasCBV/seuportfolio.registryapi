@@ -3,11 +3,13 @@ package com.seuportfolio.registryapi.modules.organizations.useCases;
 import com.seuportfolio.registryapi.modules.globals.modals.BaseContentCategoryEnum;
 import com.seuportfolio.registryapi.modules.globals.modals.BaseContentEntity;
 import com.seuportfolio.registryapi.modules.globals.modals.TagEntity;
+import com.seuportfolio.registryapi.modules.globals.repositories.BaseContentRepo;
+import com.seuportfolio.registryapi.modules.organizations.modals.OrganizationAditionalInfoEntity;
 import com.seuportfolio.registryapi.modules.organizations.presentation.dto.CreateOrganizationDTO;
-import com.seuportfolio.registryapi.modules.organizations.repositories.OrganizationRepo;
-import com.seuportfolio.registryapi.modules.organizations.repositories.OrganizationTagRepo;
 import com.seuportfolio.registryapi.modules.user.modals.UserEntity;
 import jakarta.transaction.Transactional;
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,29 +17,33 @@ import org.springframework.stereotype.Service;
 public class CreateOrganizationUseCase {
 
 	@Autowired
-	private OrganizationRepo organizationRepo;
-
-	@Autowired
-	private OrganizationTagRepo organizationTagRepo;
+	private BaseContentRepo baseContentRepo;
 
 	@Transactional
 	public BaseContentEntity exec(CreateOrganizationDTO dto, UserEntity user) {
-		var org = BaseContentEntity.builder()
+		var baseContent = BaseContentEntity.builder()
 			.name(dto.getName())
 			.description(dto.getDescription())
 			.userEntity(user)
 			.category(BaseContentCategoryEnum.ORGANIZATION.getValue())
 			.build();
 
-		this.organizationRepo.save(org);
-
+		List<TagEntity> tagList = new ArrayList<TagEntity>();
 		for (String tag : dto.getTags()) {
 			var tagEntity = TagEntity.builder()
 				.name(tag)
-				.baseContentEntity(org)
+				.baseContentEntity(baseContent)
 				.build();
-			this.organizationTagRepo.save(tagEntity);
+			tagList.add(tagEntity);
 		}
-		return org;
+
+		var org = OrganizationAditionalInfoEntity.builder()
+			.siteUrl(dto.getSiteUrl())
+			.baseContentEntity(baseContent)
+			.build();
+
+		baseContent.setOrganizationEntity(org);
+		baseContent.setTagEntity(tagList);
+		return this.baseContentRepo.save(baseContent);
 	}
 }

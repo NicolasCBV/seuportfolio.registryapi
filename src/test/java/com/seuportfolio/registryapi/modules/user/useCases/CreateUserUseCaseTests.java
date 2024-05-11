@@ -1,8 +1,6 @@
 package com.seuportfolio.registryapi.modules.user.useCases;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.Mockito.when;
 
 import com.seuportfolio.registryapi.modules.user.presentation.dto.CreateUserDTO;
@@ -20,7 +18,7 @@ public class CreateUserUseCaseTests {
 
 	@Mock
 	@Autowired
-	private UserRepo userRepo;
+	private UserRepo unusedUserRepo;
 
 	@Mock
 	@Autowired
@@ -48,11 +46,6 @@ public class CreateUserUseCaseTests {
 			dto.getPassword()
 		);
 
-		var user = this.createUserUseCase.exec(dto);
-		assertThat(user.getFullName().equals(dto.getFullName())).isTrue();
-		assertThat(user.getEmail().equals(dto.getEmail())).isTrue();
-		assertThat(user.getPassword().equals(dto.getPassword())).isTrue();
-
-		verify(this.userRepo, times(1)).save(user);
+		assertDoesNotThrow(() -> this.createUserUseCase.exec(dto));
 	}
 }

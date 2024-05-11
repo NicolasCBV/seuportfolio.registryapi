@@ -3,6 +3,8 @@ package com.seuportfolio.registryapi.modules.user.useCases;
 import com.seuportfolio.registryapi.modules.user.modals.UserEntity;
 import com.seuportfolio.registryapi.modules.user.presentation.dto.CreateUserDTO;
 import com.seuportfolio.registryapi.modules.user.repositories.UserRepo;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -24,9 +26,10 @@ public class CreateUserUseCase {
 			.fullName(dto.getFullName())
 			.email(dto.getEmail())
 			.password(hashedPassword)
+			.createdAt(LocalDateTime.now(ZoneOffset.UTC))
+			.updatedAt(LocalDateTime.now(ZoneOffset.UTC))
 			.build();
 
-		this.userRepo.save(user);
-		return user;
+		return this.userRepo.save(user);
 	}
 }
