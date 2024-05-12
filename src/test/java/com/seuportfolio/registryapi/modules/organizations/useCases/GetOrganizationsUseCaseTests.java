@@ -2,13 +2,14 @@ package com.seuportfolio.registryapi.modules.organizations.useCases;
 
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import com.seuportfolio.registryapi.modules.globals.modals.BaseContentCategoryEnum;
 import com.seuportfolio.registryapi.modules.globals.modals.BaseContentEntity;
 import com.seuportfolio.registryapi.modules.globals.repositories.BaseContentRepo;
-import com.seuportfolio.registryapi.modules.organizations.presentation.dto.CreateOrganizationDTO;
 import com.seuportfolio.registryapi.modules.user.modals.UserEntity;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,14 +18,14 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class CreateOrganizationUseCaseTests {
+public class GetOrganizationsUseCaseTests {
 
 	@Mock
 	private BaseContentRepo baseContentRepo;
 
 	@Autowired
 	@InjectMocks
-	private CreateOrganizationUseCase createOrganizationUseCase;
+	private GetOrganizationsUseCase getOrganizationsUseCase;
 
 	@BeforeEach
 	void setup() {
@@ -32,29 +33,39 @@ public class CreateOrganizationUseCaseTests {
 	}
 
 	@Test
-	@DisplayName("it should be able to create an organization")
-	void createOrganizationSuccessCase() {
-		List<String> tags = new ArrayList<String>(1);
-		tags.add("good org");
-
+	@DisplayName("it should be able to get organizations")
+	void getOrganizationsSuccessCase() {
 		var user = UserEntity.builder()
+			.id(UUID.randomUUID())
+			.fullName("john doe")
 			.email("johndoe@email.com")
-			.fullName("John Doe")
 			.password("123456")
 			.build();
 
 		var org = BaseContentEntity.builder()
-			.name("my org")
+			.name("org")
 			.description("description")
-			.userEntity(user)
 			.build();
-		var dto = CreateOrganizationDTO.builder()
-			.name(org.getName())
-			.description(org.getDescription())
-			.tags(tags)
-			.build();
+		var orgList = new ArrayList<BaseContentEntity>(1);
+		orgList.add(org);
 
-		this.createOrganizationUseCase.exec(dto, user);
-		verify(this.baseContentRepo, times(1)).save(org);
+		int offset = 0;
+		int limit = 10;
+		when(
+			this.baseContentRepo.getBaseContentCollection(
+					user.getId(),
+					limit,
+					offset,
+					BaseContentCategoryEnum.ORGANIZATION.getValue()
+				)
+		).thenReturn(orgList);
+
+		this.getOrganizationsUseCase.exec(offset, user);
+		verify(this.baseContentRepo, times(1)).getBaseContentCollection(
+			user.getId(),
+			limit,
+			offset,
+			BaseContentCategoryEnum.ORGANIZATION.getValue()
+		);
 	}
 }

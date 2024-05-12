@@ -17,8 +17,11 @@ import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.SourceType;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -48,17 +51,19 @@ public class UserEntity implements UserDetails {
 	@Column(columnDefinition = "CHAR(60)", nullable = false)
 	private String password;
 
-	@CreationTimestamp
-	@Column(name = "created_at", nullable = false)
+	@CreationTimestamp(source = SourceType.DB)
+	@Column(name = "created_at", nullable = false, updatable = false)
 	@JsonProperty("created_at")
 	private LocalDateTime createdAt;
 
-	@UpdateTimestamp
+	@UpdateTimestamp(source = SourceType.DB)
 	@Column(name = "updated_at", nullable = false)
 	@JsonProperty("updated_at")
 	private LocalDateTime updatedAt;
 
-	@OneToMany(mappedBy = "userEntity", cascade = CascadeType.REMOVE)
+	@ToString.Exclude
+	@EqualsAndHashCode.Exclude
+	@OneToMany(mappedBy = "userEntity", cascade = { CascadeType.REMOVE })
 	@JsonManagedReference
 	private List<BaseContentEntity> baseContentEntity;
 

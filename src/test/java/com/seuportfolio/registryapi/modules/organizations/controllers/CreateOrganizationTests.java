@@ -4,6 +4,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.seuportfolio.registryapi.modules.globals.repositories.BaseContentRepo;
 import com.seuportfolio.registryapi.modules.organizations.presentation.dto.CreateOrganizationDTO;
 import com.seuportfolio.registryapi.modules.user.presentation.dto.CreateUserDTO;
 import com.seuportfolio.registryapi.modules.user.presentation.dto.LoginResponseDTO;
@@ -30,11 +31,15 @@ public class CreateOrganizationTests {
 	private UserRepo userRepo;
 
 	@Autowired
+	private BaseContentRepo baseContentRepo;
+
+	@Autowired
 	private MockMvc mockMvc;
 
 	@BeforeEach
 	void flushAll() {
 		this.userRepo.deleteAll();
+		this.baseContentRepo.deleteAll();
 	}
 
 	@Test

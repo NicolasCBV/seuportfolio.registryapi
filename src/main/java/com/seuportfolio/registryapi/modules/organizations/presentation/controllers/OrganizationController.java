@@ -44,11 +44,17 @@ public class OrganizationController {
 	@Autowired
 	private UpdateOrganizationUseCase updateOrganizationUseCase;
 
-	@PatchMapping
+	@PatchMapping("{base_content_id}")
 	public ResponseEntity<Object> update(
+		@Valid @UUIDParameter @PathVariable(
+			"base_content_id"
+		) String baseContentId,
 		@Valid @RequestBody UpdateOrganizationDTO dto
 	) throws UseCaseException {
-		this.updateOrganizationUseCase.exec(dto);
+		UserEntity user = (UserEntity) SecurityContextHolder.getContext()
+			.getAuthentication()
+			.getPrincipal();
+		this.updateOrganizationUseCase.exec(baseContentId, dto, user);
 		return ResponseEntity.ok().build();
 	}
 
@@ -65,14 +71,18 @@ public class OrganizationController {
 		return ResponseEntity.created(location).build();
 	}
 
-	@DeleteMapping("/{organization_id}")
+	@DeleteMapping("/{base_content_id}")
 	public ResponseEntity<Object> delete(
 		@Valid @UUIDParameter @PathVariable(
-			"organization_id"
-		) String organizationId
+			"base_content_id"
+		) String baseContentId
 	) {
+		UserEntity user = (UserEntity) SecurityContextHolder.getContext()
+			.getAuthentication()
+			.getPrincipal();
 		this.deleteOrganizationUseCase.exec(
-				java.util.UUID.fromString(organizationId)
+				java.util.UUID.fromString(baseContentId),
+				user
 			);
 		return ResponseEntity.noContent().build();
 	}

@@ -1,18 +1,17 @@
-package com.seuportfolio.registryapi.modules.organizations.repositories;
+package com.seuportfolio.registryapi.modules.globals.repositories.tag;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.seuportfolio.registryapi.modules.globals.modals.BaseContentCategoryEnum;
 import com.seuportfolio.registryapi.modules.globals.modals.BaseContentEntity;
 import com.seuportfolio.registryapi.modules.globals.modals.TagEntity;
+import com.seuportfolio.registryapi.modules.globals.repositories.TagRepo;
 import com.seuportfolio.registryapi.modules.user.modals.UserEntity;
 import com.seuportfolio.registryapi.modules.user.repositories.UserRepo;
 import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,13 +21,13 @@ import org.springframework.test.context.ActiveProfiles;
 
 @DataJpaTest
 @ActiveProfiles("test")
-public class DeleteOrganizationTagByNameTests {
+public class DeleteTagByNameTests {
 
 	@Autowired
 	private EntityManager entityManager;
 
 	@Autowired
-	private OrganizationTagRepo organizationTagRepo;
+	private TagRepo tagRepo;
 
 	@Autowired
 	private UserRepo userRepo;
@@ -47,40 +46,36 @@ public class DeleteOrganizationTagByNameTests {
 			.password("123456")
 			.build();
 
-		var map = this.createOrganization(user);
-		var org = (BaseContentEntity) map.get("org");
-		var tag = (TagEntity) map.get("tagList");
+		var org = this.createOrganization(user);
+		var tag = org.getTagEntity().get(0);
+		Optional<TagEntity> optSearchedTag = this.tagRepo.findById(tag.getId());
 
-		this.organizationTagRepo.deleteByName(org.getId(), "tag name");
+		assertThat(optSearchedTag.isEmpty()).isFalse();
 
-		Optional<TagEntity> optSearchedTag =
-			this.organizationTagRepo.findById(tag.getId());
-
-		assertThat(optSearchedTag.isEmpty()).isTrue();
+		this.tagRepo.deleteByName(tag.getName());
+		Optional<TagEntity> deletedOptSearchedTag =
+			this.tagRepo.findById(tag.getId());
+		assertThat(deletedOptSearchedTag.isEmpty()).isTrue();
 	}
 
-	private Map<String, Object> createOrganization(UserEntity user) {
-		this.entityManager.persist(user);
+	private BaseContentEntity createOrganization(UserEntity user) {
+		var tag = TagEntity.builder().name("tag name").build();
 
-		Map<String, Object> returnableItem = new HashMap<String, Object>();
-
-		var tag = TagEntity.builder()
-			.id(UUID.randomUUID())
-			.name("tag name")
-			.build();
 		List<TagEntity> tagList = new ArrayList<TagEntity>(1);
 		tagList.add(tag);
-		returnableItem.put("tagList", tagList.get(0));
 
 		var organization = BaseContentEntity.builder()
 			.name("org name")
 			.description("description")
 			.userEntity(user)
 			.tagEntity(tagList)
+			.category(BaseContentCategoryEnum.ORGANIZATION.getValue())
 			.build();
-		returnableItem.put("org", organization);
 
+		tag.setBaseContentEntity(organization);
+
+		this.entityManager.persist(user);
 		this.entityManager.persist(organization);
-		return returnableItem;
+		return organization;
 	}
 }

@@ -3,6 +3,7 @@ package com.seuportfolio.registryapi.modules.globals.modals;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.seuportfolio.registryapi.modules.organizations.modals.OrganizationAditionalInfoEntity;
 import com.seuportfolio.registryapi.modules.user.modals.UserEntity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -13,6 +14,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDateTime;
@@ -21,8 +23,11 @@ import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.SourceType;
 import org.hibernate.annotations.UpdateTimestamp;
 
 @Data
@@ -48,17 +53,23 @@ public class BaseContentEntity {
 	@Column(length = 120, nullable = false)
 	private String description;
 
-	@CreationTimestamp
-	@Column(name = "created_at", nullable = false)
+	@CreationTimestamp(source = SourceType.DB)
+	@Column(name = "created_at", nullable = false, updatable = false)
 	@JsonProperty("created_at")
 	private LocalDateTime createdAt;
 
-	@UpdateTimestamp
+	@UpdateTimestamp(source = SourceType.DB)
 	@Column(name = "updated_at", nullable = false)
 	@JsonProperty("updated_at")
 	private LocalDateTime updatedAt;
 
-	@ManyToOne(targetEntity = UserEntity.class, cascade = { CascadeType.MERGE })
+	@ToString.Exclude
+	@EqualsAndHashCode.Exclude
+	@ManyToOne(
+		targetEntity = UserEntity.class,
+		cascade = { CascadeType.MERGE },
+		optional = false
+	)
 	@JoinColumn(name = "user_id", nullable = false)
 	@JsonBackReference
 	private UserEntity userEntity;
@@ -66,11 +77,22 @@ public class BaseContentEntity {
 	@Column(nullable = false, columnDefinition = "SMALLINT")
 	private short category;
 
+	@ToString.Exclude
+	@EqualsAndHashCode.Exclude
 	@OneToMany(
 		mappedBy = "baseContentEntity",
-		cascade = { CascadeType.REMOVE, CascadeType.REFRESH }
+		cascade = {
+			CascadeType.REMOVE, CascadeType.REFRESH, CascadeType.PERSIST,
+		}
 	)
 	@JsonProperty("tags")
 	@JsonManagedReference
 	private List<TagEntity> tagEntity;
+
+	@ToString.Exclude
+	@EqualsAndHashCode.Exclude
+	@OneToOne(mappedBy = "baseContentEntity", cascade = CascadeType.ALL)
+	@JsonProperty("organization_aditional_infos")
+	@JsonManagedReference
+	private OrganizationAditionalInfoEntity organizationEntity;
 }

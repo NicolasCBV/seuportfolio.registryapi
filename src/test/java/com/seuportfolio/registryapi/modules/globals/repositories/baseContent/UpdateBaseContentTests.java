@@ -1,11 +1,14 @@
-package com.seuportfolio.registryapi.modules.organizations.repositories;
+package com.seuportfolio.registryapi.modules.globals.repositories.baseContent;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.seuportfolio.registryapi.modules.globals.modals.BaseContentCategoryEnum;
 import com.seuportfolio.registryapi.modules.globals.modals.BaseContentEntity;
+import com.seuportfolio.registryapi.modules.globals.repositories.BaseContentRepo;
 import com.seuportfolio.registryapi.modules.user.modals.UserEntity;
 import com.seuportfolio.registryapi.modules.user.repositories.UserRepo;
 import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -16,7 +19,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 @DataJpaTest
 @ActiveProfiles("test")
-public class UpdateOrganizationTests {
+public class UpdateBaseContentTests {
 
 	@Autowired
 	private EntityManager entityManager;
@@ -25,7 +28,7 @@ public class UpdateOrganizationTests {
 	private UserRepo userRepo;
 
 	@Autowired
-	private OrganizationRepo organizationRepo;
+	private BaseContentRepo baseContentRepo;
 
 	@BeforeEach
 	void flushAll() {
@@ -33,26 +36,23 @@ public class UpdateOrganizationTests {
 	}
 
 	@Test
-	@DisplayName("it should be able to update organizatio")
-	void updateOrganizationSuccessCase() {
-		UserEntity user = UserEntity.builder()
-			.fullName("John Doe")
-			.email("johndoe@email.com")
-			.password("123456")
-			.build();
-
+	@DisplayName("it should be able to update organization")
+	@Transactional
+	void updateBaseContentSuccessCase() {
+		var user = this.createUser();
 		var org = this.createOrganization(user);
 
 		String newName = "New org name";
 		String newDescription = "New description";
-		this.organizationRepo.updateOrganization(
+		this.baseContentRepo.updateBaseContent(
 				newName,
 				newDescription,
-				org.getId()
+				org.getId(),
+				BaseContentCategoryEnum.ORGANIZATION.getValue()
 			);
 
 		Optional<BaseContentEntity> optUpdatedOrg =
-			this.organizationRepo.findById(org.getId());
+			this.baseContentRepo.findById(org.getId());
 
 		assertThat(optUpdatedOrg.isEmpty()).isFalse();
 
@@ -61,16 +61,24 @@ public class UpdateOrganizationTests {
 		assertThat(updatedOrg.getDescription()).isEqualTo(newDescription);
 	}
 
+	private UserEntity createUser() {
+		return this.entityManager.merge(
+				UserEntity.builder()
+					.fullName("John Doe")
+					.email("johndoe@email.com")
+					.password("123456")
+					.build()
+			);
+	}
+
 	private BaseContentEntity createOrganization(UserEntity user) {
-		var org = BaseContentEntity.builder()
-			.name("org name")
-			.description("description")
-			.userEntity(user)
-			.build();
-
-		this.entityManager.persist(user);
-		this.entityManager.persist(org);
-
-		return org;
+		return this.entityManager.merge(
+				BaseContentEntity.builder()
+					.name("org name")
+					.description("description")
+					.userEntity(user)
+					.category(BaseContentCategoryEnum.ORGANIZATION.getValue())
+					.build()
+			);
 	}
 }
