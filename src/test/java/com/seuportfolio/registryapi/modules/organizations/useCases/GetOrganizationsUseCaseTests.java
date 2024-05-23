@@ -43,6 +43,7 @@ public class GetOrganizationsUseCaseTests {
 			.build();
 
 		var org = BaseContentEntity.builder()
+			.id(UUID.randomUUID())
 			.name("org")
 			.description("description")
 			.build();

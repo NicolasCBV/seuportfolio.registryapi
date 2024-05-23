@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.seuportfolio.registryapi.modules.user.presentation.dto.CreateUserDTO;
 import com.seuportfolio.registryapi.modules.user.repositories.UserRepo;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,8 +33,10 @@ public class CreateUserTests {
 	private UserRepo userRepo;
 
 	@BeforeEach
+	@Transactional
 	void flushAll() {
 		this.userRepo.deleteAll();
+		this.userRepo.flush();
 	}
 
 	@Test
@@ -44,7 +47,7 @@ public class CreateUserTests {
 		result
 			.andExpect(status().isCreated())
 			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-			.andExpect(jsonPath("$.accessToken").isString())
+			.andExpect(jsonPath("$.access_token").isString())
 			.andExpect(header().exists("set-cookie"));
 	}
 
@@ -56,7 +59,7 @@ public class CreateUserTests {
 		result
 			.andExpect(status().isCreated())
 			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-			.andExpect(jsonPath("$.accessToken").isString())
+			.andExpect(jsonPath("$.access_token").isString())
 			.andExpect(header().exists("set-cookie"));
 
 		ResultActions conflictResult = this.createUser();

@@ -17,7 +17,7 @@ public interface UserRepo extends JpaRepository<UserEntity, UUID> {
 	@Query(
 		"UPDATE users u SET u.fullName = :fullName, u.description = :description WHERE u.email = :email"
 	)
-	void updateByEmail(
+	int updateByEmail(
 		@Param("email") String email,
 		@Param("fullName") String fullName,
 		@Param("description") String description

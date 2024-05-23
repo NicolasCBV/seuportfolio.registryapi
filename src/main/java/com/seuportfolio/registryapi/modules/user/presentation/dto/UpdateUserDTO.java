@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UpdateUserDTO {
 
-	@JsonProperty("fullName")
+	@JsonProperty("full_name")
 	@Size(
 		min = 2,
 		message = "O campo \"nome completo\" deve ter no mínimo 2 caracteres ou mais"

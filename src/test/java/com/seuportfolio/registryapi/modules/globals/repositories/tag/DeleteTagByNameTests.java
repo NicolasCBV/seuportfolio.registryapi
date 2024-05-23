@@ -9,6 +9,7 @@ import com.seuportfolio.registryapi.modules.globals.repositories.TagRepo;
 import com.seuportfolio.registryapi.modules.user.modals.UserEntity;
 import com.seuportfolio.registryapi.modules.user.repositories.UserRepo;
 import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -33,8 +34,10 @@ public class DeleteTagByNameTests {
 	private UserRepo userRepo;
 
 	@BeforeEach
+	@Transactional
 	void flushAll() {
 		this.userRepo.deleteAll();
+		this.userRepo.flush();
 	}
 
 	@Test

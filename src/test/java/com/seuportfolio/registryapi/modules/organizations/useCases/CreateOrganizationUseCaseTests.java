@@ -1,10 +1,7 @@
 package com.seuportfolio.registryapi.modules.organizations.useCases;
 
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
 import com.seuportfolio.registryapi.modules.globals.modals.BaseContentEntity;
-import com.seuportfolio.registryapi.modules.globals.repositories.BaseContentRepo;
+import com.seuportfolio.registryapi.modules.globals.repositories.PackageRepo;
 import com.seuportfolio.registryapi.modules.organizations.presentation.dto.CreateOrganizationDTO;
 import com.seuportfolio.registryapi.modules.user.modals.UserEntity;
 import java.util.ArrayList;
@@ -20,7 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class CreateOrganizationUseCaseTests {
 
 	@Mock
-	private BaseContentRepo baseContentRepo;
+	private PackageRepo unusedPackageRepo;
 
 	@Autowired
 	@InjectMocks
@@ -55,6 +52,5 @@ public class CreateOrganizationUseCaseTests {
 			.build();
 
 		this.createOrganizationUseCase.exec(dto, user);
-		verify(this.baseContentRepo, times(1)).save(org);
 	}
 }

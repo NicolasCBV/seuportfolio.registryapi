@@ -3,7 +3,7 @@ package com.seuportfolio.registryapi.modules.globals.modals;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.seuportfolio.registryapi.modules.organizations.modals.OrganizationAditionalInfoEntity;
+import com.seuportfolio.registryapi.modules.certifications.modals.CertificationEntity;
 import com.seuportfolio.registryapi.modules.user.modals.UserEntity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -19,6 +19,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,6 +28,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.SourceType;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -65,11 +68,7 @@ public class BaseContentEntity {
 
 	@ToString.Exclude
 	@EqualsAndHashCode.Exclude
-	@ManyToOne(
-		targetEntity = UserEntity.class,
-		cascade = { CascadeType.MERGE },
-		optional = false
-	)
+	@ManyToOne(optional = false)
 	@JoinColumn(name = "user_id", nullable = false)
 	@JsonBackReference
 	private UserEntity userEntity;
@@ -79,12 +78,7 @@ public class BaseContentEntity {
 
 	@ToString.Exclude
 	@EqualsAndHashCode.Exclude
-	@OneToMany(
-		mappedBy = "baseContentEntity",
-		cascade = {
-			CascadeType.REMOVE, CascadeType.REFRESH, CascadeType.PERSIST,
-		}
-	)
+	@OneToMany(mappedBy = "baseContentEntity", cascade = CascadeType.ALL)
 	@JsonProperty("tags")
 	@JsonManagedReference
 	private List<TagEntity> tagEntity;
@@ -92,7 +86,31 @@ public class BaseContentEntity {
 	@ToString.Exclude
 	@EqualsAndHashCode.Exclude
 	@OneToOne(mappedBy = "baseContentEntity", cascade = CascadeType.ALL)
-	@JsonProperty("organization_aditional_infos")
-	@JsonManagedReference
-	private OrganizationAditionalInfoEntity organizationEntity;
+	@JsonProperty("certification_infos")
+	@OnDelete(action = OnDeleteAction.CASCADE)
+	private CertificationEntity certificationEntity;
+
+	@ToString.Exclude
+	@EqualsAndHashCode.Exclude
+	@OneToOne(mappedBy = "root", cascade = CascadeType.ALL, optional = true)
+	@JsonProperty("package_owner")
+	@OnDelete(action = OnDeleteAction.CASCADE)
+	private PackageEntity ownerOf;
+
+	@ToString.Exclude
+	@EqualsAndHashCode.Exclude
+	@ManyToOne(cascade = CascadeType.ALL, optional = true)
+	@JoinColumn(name = "package_id", nullable = true)
+	@JsonProperty("linked_on")
+	@JsonBackReference
+	@OnDelete(action = OnDeleteAction.CASCADE)
+	private PackageEntity linkedOn;
+
+	public Optional<PackageEntity> getOwnerOf() {
+		return Optional.ofNullable(this.ownerOf);
+	}
+
+	public Optional<PackageEntity> getLinkedOn() {
+		return Optional.ofNullable(this.linkedOn);
+	}
 }

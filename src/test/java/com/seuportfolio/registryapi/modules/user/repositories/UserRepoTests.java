@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.seuportfolio.registryapi.modules.user.modals.UserEntity;
 import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -23,8 +24,10 @@ class UserRepoTests {
 	UserRepo userRepo;
 
 	@BeforeEach
+	@Transactional
 	void flushAll() {
 		this.userRepo.deleteAll();
+		this.userRepo.flush();
 	}
 
 	@Test

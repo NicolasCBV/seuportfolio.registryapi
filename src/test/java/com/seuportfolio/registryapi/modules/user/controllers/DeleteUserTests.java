@@ -1,5 +1,6 @@
 package com.seuportfolio.registryapi.modules.user.controllers;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -8,9 +9,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.seuportfolio.registryapi.modules.user.modals.UserEntity;
 import com.seuportfolio.registryapi.modules.user.presentation.dto.CreateUserDTO;
 import com.seuportfolio.registryapi.modules.user.presentation.dto.LoginResponseDTO;
 import com.seuportfolio.registryapi.modules.user.repositories.UserRepo;
+import jakarta.transaction.Transactional;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,9 +37,13 @@ public class DeleteUserTests {
 	@Autowired
 	private UserRepo userRepo;
 
+	private String email = "johndoe@email.com";
+
 	@BeforeEach
+	@Transactional
 	void flushAll() {
 		this.userRepo.deleteAll();
+		this.userRepo.flush();
 	}
 
 	@Test
@@ -54,11 +62,15 @@ public class DeleteUserTests {
 			this.mockMvc.perform(
 					delete("/user").header(
 						"Authorization",
-						"Bearer " + body.accessToken()
+						"Bearer " + body.getAccessToken()
 					)
 				);
 
 		deleteUserResult.andExpect(status().isNoContent());
+
+		Optional<UserEntity> optSearchedUser =
+			this.userRepo.findByEmail(this.email);
+		assertThat(optSearchedUser.isEmpty()).isEqualTo(true);
 	}
 
 	@Test
@@ -70,7 +82,7 @@ public class DeleteUserTests {
 
 	private ResultActions createUser(ObjectMapper mapper) throws Exception {
 		var body = CreateUserDTO.builder()
-			.email("johndoe@email.com")
+			.email(this.email)
 			.fullName("John Doe")
 			.password("123456")
 			.build();
@@ -87,7 +99,7 @@ public class DeleteUserTests {
 		result
 			.andExpect(status().isCreated())
 			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-			.andExpect(jsonPath("$.accessToken").isString())
+			.andExpect(jsonPath("$.access_token").isString())
 			.andExpect(header().exists("set-cookie"));
 
 		return result;

@@ -31,8 +31,10 @@ public class UpdateBaseContentTests {
 	private BaseContentRepo baseContentRepo;
 
 	@BeforeEach
+	@Transactional
 	void flushAll() {
 		this.userRepo.deleteAll();
+		this.userRepo.flush();
 	}
 
 	@Test

@@ -4,11 +4,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.seuportfolio.registryapi.modules.globals.repositories.BaseContentRepo;
 import com.seuportfolio.registryapi.modules.organizations.presentation.dto.CreateOrganizationDTO;
 import com.seuportfolio.registryapi.modules.user.presentation.dto.CreateUserDTO;
 import com.seuportfolio.registryapi.modules.user.presentation.dto.LoginResponseDTO;
 import com.seuportfolio.registryapi.modules.user.repositories.UserRepo;
+import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,15 +31,13 @@ public class CreateOrganizationTests {
 	private UserRepo userRepo;
 
 	@Autowired
-	private BaseContentRepo baseContentRepo;
-
-	@Autowired
 	private MockMvc mockMvc;
 
 	@BeforeEach
+	@Transactional
 	void flushAll() {
 		this.userRepo.deleteAll();
-		this.baseContentRepo.deleteAll();
+		this.userRepo.flush();
 	}
 
 	@Test
@@ -74,7 +72,7 @@ public class CreateOrganizationTests {
 						.contentType(MediaType.APPLICATION_JSON)
 						.header(
 							"Authorization",
-							"Bearer " + parsedCreateUserBody.accessToken()
+							"Bearer " + parsedCreateUserBody.getAccessToken()
 						)
 				);
 

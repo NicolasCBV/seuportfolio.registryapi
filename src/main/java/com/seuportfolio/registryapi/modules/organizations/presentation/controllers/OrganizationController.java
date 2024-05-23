@@ -1,8 +1,8 @@
 package com.seuportfolio.registryapi.modules.organizations.presentation.controllers;
 
-import com.seuportfolio.registryapi.modules.globals.modals.BaseContentEntity;
 import com.seuportfolio.registryapi.modules.organizations.presentation.dto.CreateOrganizationDTO;
 import com.seuportfolio.registryapi.modules.organizations.presentation.dto.GetOrganizationsResponseDTO;
+import com.seuportfolio.registryapi.modules.organizations.presentation.dto.OrganizationDTO;
 import com.seuportfolio.registryapi.modules.organizations.presentation.dto.UpdateOrganizationDTO;
 import com.seuportfolio.registryapi.modules.organizations.useCases.CreateOrganizationUseCase;
 import com.seuportfolio.registryapi.modules.organizations.useCases.DeleteOrganizationUseCase;
@@ -51,7 +51,7 @@ public class OrganizationController {
 		) String baseContentId,
 		@Valid @RequestBody UpdateOrganizationDTO dto
 	) throws UseCaseException {
-		UserEntity user = (UserEntity) SecurityContextHolder.getContext()
+		var user = (UserEntity) SecurityContextHolder.getContext()
 			.getAuthentication()
 			.getPrincipal();
 		this.updateOrganizationUseCase.exec(baseContentId, dto, user);
@@ -95,13 +95,12 @@ public class OrganizationController {
 			.getAuthentication()
 			.getPrincipal();
 
-		List<BaseContentEntity> orgs =
+		List<OrganizationDTO> orgs =
 			this.getOrganizationsUseCase.exec(offset, user);
-
-		GetOrganizationsResponseDTO body = GetOrganizationsResponseDTO.builder()
+		var orgList = GetOrganizationsResponseDTO.builder()
 			.organizations(orgs)
 			.build();
 
-		return ResponseEntity.ok().body(body);
+		return ResponseEntity.ok().body(orgList);
 	}
 }
