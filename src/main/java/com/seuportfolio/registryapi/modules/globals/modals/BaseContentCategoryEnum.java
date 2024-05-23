@@ -1,7 +1,8 @@
 package com.seuportfolio.registryapi.modules.globals.modals;
 
 public enum BaseContentCategoryEnum {
-	ORGANIZATION((short) 0);
+	ORGANIZATION((short) 0),
+	CERTIFICATION((short) 1);
 
 	private final Short value;
 

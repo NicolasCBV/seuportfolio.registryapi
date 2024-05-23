@@ -23,16 +23,6 @@ public class OrganizationChangesDTO {
 	private String name;
 
 	@Size(
-		min = 8,
-		message = "O link do site da organização precisa ter pelo menos 8 caracteres"
-	)
-	@Size(
-		min = 8,
-		message = "O link do site da organização precisa ter no máximo 255 caracteres"
-	)
-	private String siteUrl;
-
-	@Size(
 		min = 10,
 		message = "A descrição da organização precisa conter no mínimo 10 caracteres"
 	)

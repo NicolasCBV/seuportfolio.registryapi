@@ -1,7 +1,7 @@
 package com.seuportfolio.registryapi.modules.globals.modals;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import jakarta.persistence.CascadeType;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -20,6 +20,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.SourceType;
 
 @Data
@@ -44,17 +46,14 @@ public class TagEntity {
 
 	@CreationTimestamp(source = SourceType.DB)
 	@Column(name = "created_at", nullable = false, updatable = false)
+	@JsonProperty("created_at")
 	private LocalDateTime createdAt;
 
 	@ToString.Exclude
 	@EqualsAndHashCode.Exclude
-	@ManyToOne(
-		cascade = {
-			CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH,
-		},
-		targetEntity = BaseContentEntity.class
-	)
+	@ManyToOne(optional = false)
 	@JoinColumn(name = "base_content_id", nullable = false)
+	@OnDelete(action = OnDeleteAction.CASCADE)
 	@JsonBackReference
 	private BaseContentEntity baseContentEntity;
 }

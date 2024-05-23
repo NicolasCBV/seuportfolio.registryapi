@@ -1,6 +1,7 @@
 package com.seuportfolio.registryapi.modules.globals.repositories;
 
 import com.seuportfolio.registryapi.modules.globals.modals.BaseContentEntity;
+import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -48,6 +49,18 @@ public interface BaseContentRepo
 		@Param("name") String name,
 		@Param("description") String description,
 		@Param("base_content_id") UUID organizationId,
+		@Param("category") short category
+	);
+
+	@Modifying(clearAutomatically = true)
+	@Transactional
+	@Query(
+		"DELETE FROM base_contents b " +
+		"WHERE id = :base_content_id AND userEntity.id = :user_id AND category = :category"
+	)
+	int safeDelete(
+		@Param("base_content_id") UUID baseContentId,
+		@Param("user_id") UUID userId,
 		@Param("category") short category
 	);
 }

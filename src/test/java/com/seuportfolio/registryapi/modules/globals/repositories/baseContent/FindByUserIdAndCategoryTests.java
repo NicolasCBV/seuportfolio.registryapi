@@ -8,6 +8,7 @@ import com.seuportfolio.registryapi.modules.globals.repositories.BaseContentRepo
 import com.seuportfolio.registryapi.modules.user.modals.UserEntity;
 import com.seuportfolio.registryapi.modules.user.repositories.UserRepo;
 import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -30,8 +31,10 @@ public class FindByUserIdAndCategoryTests {
 	private EntityManager entityManager;
 
 	@BeforeEach
+	@Transactional
 	void flushAll() {
 		this.userRepo.deleteAll();
+		this.userRepo.flush();
 	}
 
 	@Test

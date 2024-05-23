@@ -1,5 +1,6 @@
 package com.seuportfolio.registryapi.modules.organizations.presentation.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Size;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -13,8 +14,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class UpdateOrganizationDTO {
 
+	@JsonProperty("changes")
 	private OrganizationChangesDTO organizationChanges;
 
+	@JsonProperty("tags_to_delete")
 	private List<
 		@Size(
 			min = 2,
@@ -23,6 +26,7 @@ public class UpdateOrganizationDTO {
 		) String
 	> deleteTags;
 
+	@JsonProperty("tags_to_add")
 	private List<
 		@Size(
 			min = 2,

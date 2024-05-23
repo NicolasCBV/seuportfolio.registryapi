@@ -10,10 +10,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.seuportfolio.registryapi.modules.globals.modals.BaseContentCategoryEnum;
 import com.seuportfolio.registryapi.modules.globals.modals.BaseContentEntity;
+import com.seuportfolio.registryapi.modules.globals.modals.PackageEntity;
+import com.seuportfolio.registryapi.modules.globals.modals.PackageEnum;
 import com.seuportfolio.registryapi.modules.globals.modals.TagEntity;
 import com.seuportfolio.registryapi.modules.globals.repositories.BaseContentRepo;
 import com.seuportfolio.registryapi.modules.globals.repositories.TagRepo;
-import com.seuportfolio.registryapi.modules.organizations.modals.OrganizationAditionalInfoEntity;
 import com.seuportfolio.registryapi.modules.organizations.presentation.dto.OrganizationChangesDTO;
 import com.seuportfolio.registryapi.modules.organizations.presentation.dto.UpdateOrganizationDTO;
 import com.seuportfolio.registryapi.modules.user.modals.TokenPayloadEntity;
@@ -64,10 +65,10 @@ public class UpdateOrganizationTests {
 	private String newTagName = "new tag";
 
 	@BeforeEach
+	@Transactional
 	void flushAll() {
 		this.userRepo.deleteAll();
-		this.baseContentRepo.deleteAll();
-		this.tagRepo.deleteAll();
+		this.userRepo.flush();
 	}
 
 	@Test
@@ -78,14 +79,13 @@ public class UpdateOrganizationTests {
 
 		LoginResponseDTO createUserBody = this.createUser(mapper);
 		TokenPayloadEntity decodedToken =
-			this.decodeToken(createUserBody.accessToken(), mapper);
+			this.decodeToken(createUserBody.getAccessToken(), mapper);
 
 		BaseContentEntity org = this.createOrg(decodedToken.getSub());
 
 		var organizationChanges = OrganizationChangesDTO.builder()
 			.name("new org name")
 			.description("new org description")
-			.siteUrl("http://new-site")
 			.build();
 
 		List<String> deleteTags = new ArrayList<String>(1);
@@ -109,7 +109,7 @@ public class UpdateOrganizationTests {
 						.content(requestBodyJson)
 						.header(
 							"Authorization",
-							"Bearer " + createUserBody.accessToken()
+							"Bearer " + createUserBody.getAccessToken()
 						)
 				);
 		result.andExpect(status().isOk());
@@ -119,9 +119,6 @@ public class UpdateOrganizationTests {
 
 		var searchedBaseContent = optSearchedBaseContent.get();
 
-		assertThat(
-			searchedBaseContent.getOrganizationEntity().getSiteUrl()
-		).isEqualTo("http://new-site");
 		assertThat(searchedBaseContent.getName()).isEqualTo("new org name");
 		assertThat(searchedBaseContent.getDescription()).isEqualTo(
 			"new org description"
@@ -149,7 +146,7 @@ public class UpdateOrganizationTests {
 						.content("{}")
 						.header(
 							"Authorization",
-							"Bearer " + createUserResult.accessToken()
+							"Bearer " + createUserResult.getAccessToken()
 						)
 				);
 		result.andExpect(status().isBadRequest());
@@ -190,7 +187,7 @@ public class UpdateOrganizationTests {
 		result
 			.andExpect(status().isCreated())
 			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-			.andExpect(jsonPath("$.accessToken").isString());
+			.andExpect(jsonPath("$.access_token").isString());
 
 		String resJson = result.andReturn().getResponse().getContentAsString();
 		LoginResponseDTO resBody = mapper.readValue(
@@ -206,24 +203,24 @@ public class UpdateOrganizationTests {
 		assertThat(optUser.isEmpty()).isFalse();
 		var user = optUser.get();
 
-		var aditionalInfos = OrganizationAditionalInfoEntity.builder()
-			.siteUrl("http://localhost:8080")
+		var pack = PackageEntity.builder()
+			.type(PackageEnum.ORGANIZATION.getValue())
 			.build();
-
 		var org = BaseContentEntity.builder()
 			.name("org name")
 			.description("description")
 			.userEntity(user)
-			.organizationEntity(aditionalInfos)
 			.category(BaseContentCategoryEnum.ORGANIZATION.getValue())
+			.ownerOf(pack)
 			.build();
+		pack.setRoot(org);
+
 		var tagList = new ArrayList<TagEntity>(2);
 		tagList.add(
 			TagEntity.builder().name(oldTagName).baseContentEntity(org).build()
 		);
 
 		org.setTagEntity(tagList);
-		aditionalInfos.setBaseContentEntity(org);
 
 		var orgList = new ArrayList<BaseContentEntity>(1);
 		orgList.add(org);

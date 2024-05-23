@@ -10,13 +10,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.seuportfolio.registryapi.modules.globals.modals.BaseContentCategoryEnum;
 import com.seuportfolio.registryapi.modules.globals.modals.BaseContentEntity;
+import com.seuportfolio.registryapi.modules.globals.modals.PackageEntity;
+import com.seuportfolio.registryapi.modules.globals.modals.PackageEnum;
+import com.seuportfolio.registryapi.modules.globals.modals.TagEntity;
 import com.seuportfolio.registryapi.modules.globals.repositories.BaseContentRepo;
-import com.seuportfolio.registryapi.modules.organizations.modals.OrganizationAditionalInfoEntity;
+import com.seuportfolio.registryapi.modules.globals.repositories.PackageRepo;
 import com.seuportfolio.registryapi.modules.user.modals.TokenPayloadEntity;
 import com.seuportfolio.registryapi.modules.user.modals.UserEntity;
 import com.seuportfolio.registryapi.modules.user.presentation.dto.CreateUserDTO;
 import com.seuportfolio.registryapi.modules.user.presentation.dto.LoginResponseDTO;
 import com.seuportfolio.registryapi.modules.user.repositories.UserRepo;
+import jakarta.transaction.Transactional;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -43,6 +47,9 @@ public class GetOrganizationsTests {
 	private MockMvc mockMvc;
 
 	@Autowired
+	private PackageRepo packageRepo;
+
+	@Autowired
 	private BaseContentRepo baseContentRepo;
 
 	@Autowired
@@ -56,11 +63,12 @@ public class GetOrganizationsTests {
 
 	@Test
 	@DisplayName("it should be able to get organizations")
+	@Transactional
 	void getOrgs() throws Exception {
 		ObjectMapper mapper = new ObjectMapper();
 		LoginResponseDTO createUserBody = this.createUser(mapper);
 
-		String token = createUserBody.accessToken();
+		String token = createUserBody.getAccessToken();
 		TokenPayloadEntity decodedToken = this.decodeToken(token, mapper);
 
 		this.createOrg(decodedToken.getSub());
@@ -82,15 +90,11 @@ public class GetOrganizationsTests {
 			.andExpect(jsonPath("$.organizations[0].description").isString())
 			.andExpect(jsonPath("$.organizations[0].created_at").isString())
 			.andExpect(jsonPath("$.organizations[0].updated_at").isString())
+			.andExpect(jsonPath("$.organizations[0].tags").isArray())
+			.andExpect(jsonPath("$.organizations[0].tags[0].id").isString())
+			.andExpect(jsonPath("$.organizations[0].tags[0].name").isString())
 			.andExpect(
-				jsonPath(
-					"$.organizations[0].organization_aditional_infos.id"
-				).isString()
-			)
-			.andExpect(
-				jsonPath(
-					"$.organizations[0].organization_aditional_infos.site_url"
-				).isString()
+				jsonPath("$.organizations[0].tags[0].created_at").isString()
 			);
 	}
 
@@ -129,7 +133,7 @@ public class GetOrganizationsTests {
 		result
 			.andExpect(status().isCreated())
 			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-			.andExpect(jsonPath("$.accessToken").isString());
+			.andExpect(jsonPath("$.access_token").isString());
 
 		String resJson = result.andReturn().getResponse().getContentAsString();
 		LoginResponseDTO resBody = mapper.readValue(
@@ -147,20 +151,27 @@ public class GetOrganizationsTests {
 		List<BaseContentEntity> orgs = new ArrayList<BaseContentEntity>();
 
 		for (int i = 0; i < 10; i++) {
-			var aditionalInfos = OrganizationAditionalInfoEntity.builder()
-				.siteUrl("http://localhost:8080")
+			var tag = TagEntity.builder().name("simple tag").build();
+
+			List<TagEntity> tagList = new ArrayList<TagEntity>(1);
+			tagList.add(tag);
+
+			var pack = PackageEntity.builder()
+				.type(PackageEnum.ORGANIZATION.getValue())
 				.build();
 			var org = BaseContentEntity.builder()
 				.name("org:" + i)
 				.description("Simple description")
 				.userEntity(user.get())
-				.organizationEntity(aditionalInfos)
 				.category(BaseContentCategoryEnum.ORGANIZATION.getValue())
+				.tagEntity(tagList)
+				.ownerOf(pack)
 				.build();
-			aditionalInfos.setBaseContentEntity(org);
 
-			this.baseContentRepo.save(org);
-			orgs.add(org);
+			pack.setRoot(org);
+			tag.setBaseContentEntity(org);
+
+			this.packageRepo.save(pack);
 		}
 
 		return orgs;

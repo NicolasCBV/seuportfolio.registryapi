@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.seuportfolio.registryapi.modules.user.presentation.dto.CreateUserDTO;
 import com.seuportfolio.registryapi.modules.user.repositories.UserRepo;
 import jakarta.servlet.http.Cookie;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,8 +34,10 @@ public class RefreshTokenTests {
 	private UserRepo userRepo;
 
 	@BeforeEach
+	@Transactional
 	void flushAll() {
 		this.userRepo.deleteAll();
+		this.userRepo.flush();
 	}
 
 	@Test
@@ -53,7 +56,7 @@ public class RefreshTokenTests {
 		refreshTokensResult
 			.andExpect(status().isCreated())
 			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-			.andExpect(jsonPath("$.accessToken").isString())
+			.andExpect(jsonPath("$.access_token").isString())
 			.andExpect(header().exists("set-cookie"));
 	}
 
@@ -84,7 +87,7 @@ public class RefreshTokenTests {
 		result
 			.andExpect(status().isCreated())
 			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-			.andExpect(jsonPath("$.accessToken").isString())
+			.andExpect(jsonPath("$.access_token").isString())
 			.andExpect(header().exists("set-cookie"));
 
 		return result;

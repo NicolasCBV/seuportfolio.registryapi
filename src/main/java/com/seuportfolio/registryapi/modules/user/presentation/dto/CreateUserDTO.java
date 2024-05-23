@@ -28,7 +28,7 @@ public class CreateUserDTO {
 	)
 	private String email;
 
-	@JsonProperty("fullName")
+	@JsonProperty("full_name")
 	@NotNull(message = "O campo \"nome completo\" não pode estar vázio")
 	@Size(
 		min = 2,

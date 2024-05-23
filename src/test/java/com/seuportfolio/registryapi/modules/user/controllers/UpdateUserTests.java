@@ -14,6 +14,7 @@ import com.seuportfolio.registryapi.modules.user.presentation.dto.CreateUserDTO;
 import com.seuportfolio.registryapi.modules.user.presentation.dto.LoginResponseDTO;
 import com.seuportfolio.registryapi.modules.user.presentation.dto.UpdateUserDTO;
 import com.seuportfolio.registryapi.modules.user.repositories.UserRepo;
+import jakarta.transaction.Transactional;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Base64.Decoder;
@@ -40,8 +41,10 @@ public class UpdateUserTests {
 	private UserRepo userRepo;
 
 	@BeforeEach
+	@Transactional
 	void flushAll() {
 		this.userRepo.deleteAll();
+		this.userRepo.flush();
 	}
 
 	@Test
@@ -71,7 +74,7 @@ public class UpdateUserTests {
 		res
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-			.andExpect(jsonPath("$.accessToken").isString())
+			.andExpect(jsonPath("$.access_token").isString())
 			.andExpect(header().exists("set-cookie"));
 
 		String jsonRes = res.andReturn().getResponse().getContentAsString();
@@ -81,7 +84,7 @@ public class UpdateUserTests {
 		);
 
 		TokenPayloadEntity payload =
-			this.decodeToken(mapper, resBody.accessToken());
+			this.decodeToken(mapper, resBody.getAccessToken());
 
 		assertThat(payload.getFullName()).isEqualTo(newFullName);
 		assertThat(payload.getDescription()).isEqualTo(newDescription);
@@ -149,7 +152,7 @@ public class UpdateUserTests {
 		res
 			.andExpect(status().isCreated())
 			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-			.andExpect(jsonPath("$.accessToken").isString())
+			.andExpect(jsonPath("$.access_token").isString())
 			.andExpect(header().exists("set-cookie"));
 
 		String resBody = res.andReturn().getResponse().getContentAsString();
@@ -157,6 +160,6 @@ public class UpdateUserTests {
 			resBody,
 			LoginResponseDTO.class
 		);
-		return resJson.accessToken();
+		return resJson.getAccessToken();
 	}
 }

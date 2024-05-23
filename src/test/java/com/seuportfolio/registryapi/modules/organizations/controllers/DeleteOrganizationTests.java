@@ -10,8 +10,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.seuportfolio.registryapi.modules.globals.modals.BaseContentCategoryEnum;
 import com.seuportfolio.registryapi.modules.globals.modals.BaseContentEntity;
+import com.seuportfolio.registryapi.modules.globals.modals.PackageEntity;
+import com.seuportfolio.registryapi.modules.globals.modals.PackageEnum;
 import com.seuportfolio.registryapi.modules.globals.repositories.BaseContentRepo;
-import com.seuportfolio.registryapi.modules.organizations.modals.OrganizationAditionalInfoEntity;
 import com.seuportfolio.registryapi.modules.user.modals.TokenPayloadEntity;
 import com.seuportfolio.registryapi.modules.user.modals.UserEntity;
 import com.seuportfolio.registryapi.modules.user.presentation.dto.CreateUserDTO;
@@ -52,9 +53,10 @@ public class DeleteOrganizationTests {
 	private UserRepo userRepo;
 
 	@BeforeEach
+	@Transactional
 	void flushAll() {
 		this.userRepo.deleteAll();
-		this.baseContentRepo.deleteAll();
+		this.userRepo.flush();
 	}
 
 	@Test
@@ -65,7 +67,7 @@ public class DeleteOrganizationTests {
 
 		LoginResponseDTO createUserBody = this.createUser(mapper);
 		TokenPayloadEntity decodedToken =
-			this.decodeToken(createUserBody.accessToken(), mapper);
+			this.decodeToken(createUserBody.getAccessToken(), mapper);
 		Optional<UserEntity> optUser =
 			this.userRepo.findByEmail(decodedToken.getSub());
 		assertThat(optUser.isEmpty()).isFalse();
@@ -76,10 +78,14 @@ public class DeleteOrganizationTests {
 			this.mockMvc.perform(
 					delete("/organization/" + org.getId().toString()).header(
 						"Authorization",
-						"Bearer " + createUserBody.accessToken()
+						"Bearer " + createUserBody.getAccessToken()
 					)
 				);
 		result.andExpect(status().isNoContent());
+
+		Optional<BaseContentEntity> optSearchedOrg =
+			this.baseContentRepo.findById(org.getId());
+		assertThat(optSearchedOrg.isEmpty()).isTrue();
 	}
 
 	@Test
@@ -93,7 +99,7 @@ public class DeleteOrganizationTests {
 			this.mockMvc.perform(
 					delete("/organization/wrong-id").header(
 						"Authorization",
-						"Bearer " + createUserBody.accessToken()
+						"Bearer " + createUserBody.getAccessToken()
 					)
 				);
 		result.andExpect(status().isBadRequest());
@@ -134,7 +140,7 @@ public class DeleteOrganizationTests {
 		result
 			.andExpect(status().isCreated())
 			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-			.andExpect(jsonPath("$.accessToken").isString());
+			.andExpect(jsonPath("$.access_token").isString());
 
 		String resJson = result.andReturn().getResponse().getContentAsString();
 		LoginResponseDTO resBody = mapper.readValue(
@@ -146,17 +152,17 @@ public class DeleteOrganizationTests {
 	}
 
 	private BaseContentEntity createOrg(UserEntity user) throws Exception {
+		var pack = PackageEntity.builder()
+			.type(PackageEnum.ORGANIZATION.getValue())
+			.build();
 		var org = BaseContentEntity.builder()
 			.name("org name")
 			.description("description")
 			.userEntity(user)
 			.category(BaseContentCategoryEnum.ORGANIZATION.getValue())
+			.ownerOf(pack)
 			.build();
-		var orgAditionalInfos = OrganizationAditionalInfoEntity.builder()
-			.siteUrl("http://localhost:8080")
-			.baseContentEntity(org)
-			.build();
-		org.setOrganizationEntity(orgAditionalInfos);
+		pack.setRoot(org);
 
 		this.entityManager.persist(org);
 
