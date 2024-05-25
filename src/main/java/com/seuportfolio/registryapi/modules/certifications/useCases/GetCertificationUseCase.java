@@ -6,31 +6,30 @@ import com.seuportfolio.registryapi.modules.globals.modals.BaseContentCategoryEn
 import com.seuportfolio.registryapi.modules.globals.modals.BaseContentEntity;
 import com.seuportfolio.registryapi.modules.globals.repositories.BaseContentRepo;
 import com.seuportfolio.registryapi.modules.user.modals.UserEntity;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
+import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class GetCertificationsUseCase {
+public class GetCertificationUseCase {
 
 	@Autowired
 	private BaseContentRepo baseContentRepo;
 
-	public List<CertificationDTO> exec(int offset, UserEntity user) {
-		List<BaseContentEntity> baseContentList =
-			this.baseContentRepo.getBaseContentCollection(
+	public Optional<CertificationDTO> exec(
+		String baseContentId,
+		UserEntity user
+	) {
+		Optional<BaseContentEntity> baseContentCertification =
+			this.baseContentRepo.findByUserIdAndIdAndCategory(
 					user.getId(),
-					10,
-					offset,
+					UUID.fromString(baseContentId),
 					BaseContentCategoryEnum.CERTIFICATION.getValue()
 				);
-
-		List<CertificationDTO> data = baseContentList
-			.stream()
-			.map(CertificationMapper::prettify)
-			.collect(Collectors.toList());
-
-		return data;
+		if (baseContentCertification.isEmpty()) return Optional.empty();
+		return Optional.of(
+			CertificationMapper.prettify(baseContentCertification.get())
+		);
 	}
 }

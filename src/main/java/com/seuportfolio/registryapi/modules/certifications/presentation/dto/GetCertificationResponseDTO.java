@@ -1,4 +1,4 @@
-package com.seuportfolio.registryapi.modules.projects.presentation.dto;
+package com.seuportfolio.registryapi.modules.certifications.presentation.dto;
 
 import java.util.Optional;
 import lombok.AllArgsConstructor;
@@ -8,9 +8,8 @@ import lombok.NoArgsConstructor;
 
 @Data
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
-public class GetProjectResponseDTO {
+public class GetCertificationResponseDTO {
 
-	private Optional<ProjectDTO> project;
+	private Optional<CertificationDTO> certification;
 }

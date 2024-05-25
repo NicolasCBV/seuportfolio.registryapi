@@ -6,29 +6,30 @@ import com.seuportfolio.registryapi.modules.globals.repositories.BaseContentRepo
 import com.seuportfolio.registryapi.modules.organizations.modals.mappers.OrganizationMapper;
 import com.seuportfolio.registryapi.modules.organizations.presentation.dto.OrganizationDTO;
 import com.seuportfolio.registryapi.modules.user.modals.UserEntity;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
+import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class GetOrganizationsUseCase {
+public class GetOrganizationUseCase {
 
 	@Autowired
 	private BaseContentRepo baseContentRepo;
 
-	public List<OrganizationDTO> exec(int offset, UserEntity user) {
-		List<BaseContentEntity> orgs =
-			this.baseContentRepo.getBaseContentCollection(
+	public Optional<OrganizationDTO> exec(
+		String baseContentId,
+		UserEntity user
+	) {
+		Optional<BaseContentEntity> optBaseContentOrg =
+			this.baseContentRepo.findByUserIdAndIdAndCategory(
 					user.getId(),
-					10,
-					offset,
+					UUID.fromString(baseContentId),
 					BaseContentCategoryEnum.ORGANIZATION.getValue()
 				);
-		List<OrganizationDTO> data = orgs
-			.stream()
-			.map(OrganizationMapper::prettify)
-			.collect(Collectors.toList());
-		return data;
+		if (optBaseContentOrg.isEmpty()) return Optional.empty();
+		return Optional.of(
+			OrganizationMapper.prettify(optBaseContentOrg.get())
+		);
 	}
 }

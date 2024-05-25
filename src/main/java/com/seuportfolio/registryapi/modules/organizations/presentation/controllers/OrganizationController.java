@@ -1,11 +1,13 @@
 package com.seuportfolio.registryapi.modules.organizations.presentation.controllers;
 
 import com.seuportfolio.registryapi.modules.organizations.presentation.dto.CreateOrganizationDTO;
+import com.seuportfolio.registryapi.modules.organizations.presentation.dto.GetOrganizationResponseDTO;
 import com.seuportfolio.registryapi.modules.organizations.presentation.dto.GetOrganizationsResponseDTO;
 import com.seuportfolio.registryapi.modules.organizations.presentation.dto.OrganizationDTO;
 import com.seuportfolio.registryapi.modules.organizations.presentation.dto.UpdateOrganizationDTO;
 import com.seuportfolio.registryapi.modules.organizations.useCases.CreateOrganizationUseCase;
 import com.seuportfolio.registryapi.modules.organizations.useCases.DeleteOrganizationUseCase;
+import com.seuportfolio.registryapi.modules.organizations.useCases.GetOrganizationUseCase;
 import com.seuportfolio.registryapi.modules.organizations.useCases.GetOrganizationsUseCase;
 import com.seuportfolio.registryapi.modules.organizations.useCases.UpdateOrganizationUseCase;
 import com.seuportfolio.registryapi.modules.user.modals.UserEntity;
@@ -15,6 +17,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.PositiveOrZero;
 import java.net.URI;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -37,6 +40,9 @@ public class OrganizationController {
 
 	@Autowired
 	private GetOrganizationsUseCase getOrganizationsUseCase;
+
+	@Autowired
+	private GetOrganizationUseCase getOrganizationUseCase;
 
 	@Autowired
 	private DeleteOrganizationUseCase deleteOrganizationUseCase;
@@ -89,7 +95,7 @@ public class OrganizationController {
 
 	@GetMapping
 	public ResponseEntity<GetOrganizationsResponseDTO> getOrgs(
-		@RequestParam("offset") @PositiveOrZero int offset
+		@Valid @RequestParam("offset") @PositiveOrZero int offset
 	) {
 		UserEntity user = (UserEntity) SecurityContextHolder.getContext()
 			.getAuthentication()
@@ -102,5 +108,22 @@ public class OrganizationController {
 			.build();
 
 		return ResponseEntity.ok().body(orgList);
+	}
+
+	@GetMapping("{base_content_id}")
+	public ResponseEntity<GetOrganizationResponseDTO> getOrg(
+		@Valid @PathVariable(
+			"base_content_id"
+		) @UUIDParameter String baseContentId
+	) {
+		var user = (UserEntity) SecurityContextHolder.getContext()
+			.getAuthentication()
+			.getPrincipal();
+		Optional<OrganizationDTO> optOrg =
+			this.getOrganizationUseCase.exec(baseContentId, user);
+		var resBody = GetOrganizationResponseDTO.builder()
+			.organization(optOrg)
+			.build();
+		return ResponseEntity.ok().body(resBody);
 	}
 }

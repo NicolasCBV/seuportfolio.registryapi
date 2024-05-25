@@ -2,10 +2,12 @@ package com.seuportfolio.registryapi.modules.projects.presentation.controllers;
 
 import com.seuportfolio.registryapi.modules.projects.presentation.dto.CreateProjectDTO;
 import com.seuportfolio.registryapi.modules.projects.presentation.dto.GetProjectResponseDTO;
+import com.seuportfolio.registryapi.modules.projects.presentation.dto.GetProjectsResponseDTO;
 import com.seuportfolio.registryapi.modules.projects.presentation.dto.ProjectDTO;
 import com.seuportfolio.registryapi.modules.projects.presentation.dto.UpdateProjectDTO;
 import com.seuportfolio.registryapi.modules.projects.useCases.CreateProjectUseCase;
 import com.seuportfolio.registryapi.modules.projects.useCases.DeleteProjectUseCase;
+import com.seuportfolio.registryapi.modules.projects.useCases.GetProjectUseCase;
 import com.seuportfolio.registryapi.modules.projects.useCases.GetProjectsUseCase;
 import com.seuportfolio.registryapi.modules.projects.useCases.UpdateProjectUseCase;
 import com.seuportfolio.registryapi.modules.user.modals.UserEntity;
@@ -15,6 +17,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.PositiveOrZero;
 import java.net.URI;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -40,13 +43,16 @@ public class ProjectController {
 	private GetProjectsUseCase getProjectsUseCase;
 
 	@Autowired
+	private GetProjectUseCase getProjectUseCase;
+
+	@Autowired
 	private DeleteProjectUseCase deleteProjectUseCase;
 
 	@Autowired
 	private UpdateProjectUseCase updateProjectUseCase;
 
 	@GetMapping
-	public ResponseEntity<GetProjectResponseDTO> get(
+	public ResponseEntity<GetProjectsResponseDTO> getProjects(
 		@PositiveOrZero @RequestParam("offset") int offset
 	) {
 		var user = (UserEntity) SecurityContextHolder.getContext()
@@ -54,7 +60,25 @@ public class ProjectController {
 			.getPrincipal();
 		List<ProjectDTO> projectList =
 			this.getProjectsUseCase.exec(offset, user);
-		return ResponseEntity.ok().body(new GetProjectResponseDTO(projectList));
+		return ResponseEntity.ok()
+			.body(new GetProjectsResponseDTO(projectList));
+	}
+
+	@GetMapping("{base_content_id}")
+	public ResponseEntity<GetProjectResponseDTO> getProject(
+		@Valid @PathVariable(
+			"base_content_id"
+		) @UUIDParameter String baseContentId
+	) {
+		var user = (UserEntity) SecurityContextHolder.getContext()
+			.getAuthentication()
+			.getPrincipal();
+		Optional<ProjectDTO> optProject =
+			this.getProjectUseCase.exec(baseContentId, user);
+		var resBody = GetProjectResponseDTO.builder()
+			.project(optProject)
+			.build();
+		return ResponseEntity.ok().body(resBody);
 	}
 
 	@PostMapping

@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class DeleteProjectUseCaseTests {
 
 	@Mock
-	private BaseContentRepo baseContentRepo;
+	private BaseContentRepo unusedBaseContentRepo;
 
 	@Autowired
 	@InjectMocks
