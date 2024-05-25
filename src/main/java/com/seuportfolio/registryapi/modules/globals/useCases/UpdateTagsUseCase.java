@@ -77,7 +77,7 @@ public class UpdateTagsUseCase {
 		BaseContentEntity org,
 		List<String> tagsToUpdate
 	) {
-		var tagList = new ArrayList<TagEntity>();
+		var tagList = org.getTagEntity();
 		if (tagsToUpdate != null) for (String tagsToAdd : tagsToUpdate) {
 			var tag = TagEntity.builder()
 				.name(tagsToAdd)

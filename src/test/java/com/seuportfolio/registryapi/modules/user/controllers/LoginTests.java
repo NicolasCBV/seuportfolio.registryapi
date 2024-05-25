@@ -7,9 +7,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.seuportfolio.registryapi.modules.user.presentation.dto.CreateUserDTO;
 import com.seuportfolio.registryapi.modules.user.presentation.dto.LoginDTO;
 import com.seuportfolio.registryapi.modules.user.repositories.UserRepo;
+import com.seuportfolio.registryapi.tests.httpFactories.CreateUserFactory;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -44,7 +44,7 @@ public class LoginTests {
 	@DisplayName("it should be able to login")
 	void loginSuccessCase() throws Exception {
 		var mapper = new ObjectMapper();
-		this.createUser(mapper);
+		CreateUserFactory.create(mapper, this.mockMvc);
 
 		var loginRequestBody = LoginDTO.builder()
 			.email("johndoe@email.com")
@@ -94,29 +94,5 @@ public class LoginTests {
 					post("/auth/login").contentType(MediaType.APPLICATION_JSON)
 				);
 		result.andExpect(status().isBadRequest());
-	}
-
-	private ResultActions createUser(ObjectMapper mapper) throws Exception {
-		var body = CreateUserDTO.builder()
-			.email("johndoe@email.com")
-			.password("123456")
-			.fullName("John Doe")
-			.build();
-		String json = mapper.writeValueAsString(body);
-
-		ResultActions result =
-			this.mockMvc.perform(
-					post("/user")
-						.content(json)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
-
-		result
-			.andExpect(status().isCreated())
-			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-			.andExpect(jsonPath("$.access_token").isString())
-			.andExpect(header().exists("set-cookie"));
-
-		return result;
 	}
 }

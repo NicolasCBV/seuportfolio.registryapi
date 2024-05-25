@@ -21,8 +21,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.SourceType;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.security.core.GrantedAuthority;
@@ -67,7 +65,6 @@ public class UserEntity implements UserDetails {
 	@EqualsAndHashCode.Exclude
 	@OneToMany(mappedBy = "userEntity", cascade = CascadeType.ALL)
 	@JsonManagedReference
-	@OnDelete(action = OnDeleteAction.CASCADE)
 	private List<BaseContentEntity> baseContentEntity;
 
 	@Override

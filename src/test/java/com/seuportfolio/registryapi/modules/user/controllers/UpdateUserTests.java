@@ -2,7 +2,6 @@ package com.seuportfolio.registryapi.modules.user.controllers;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -10,14 +9,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.seuportfolio.registryapi.modules.user.modals.TokenPayloadEntity;
-import com.seuportfolio.registryapi.modules.user.presentation.dto.CreateUserDTO;
 import com.seuportfolio.registryapi.modules.user.presentation.dto.LoginResponseDTO;
 import com.seuportfolio.registryapi.modules.user.presentation.dto.UpdateUserDTO;
 import com.seuportfolio.registryapi.modules.user.repositories.UserRepo;
+import com.seuportfolio.registryapi.tests.httpFactories.CreateUserFactory;
+import com.seuportfolio.registryapi.utils.jwt.JWTDecoder;
 import jakarta.transaction.Transactional;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.Base64.Decoder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -50,7 +47,17 @@ public class UpdateUserTests {
 	@Test
 	@DisplayName("it should be able to update user")
 	void updateUserSuccessCase() throws Exception {
-		String accessToken = this.createUser();
+		var mapper = new ObjectMapper();
+		var createUserRes = CreateUserFactory.create(mapper, this.mockMvc);
+		var createUserJson = createUserRes
+			.andReturn()
+			.getResponse()
+			.getContentAsString();
+		var loginBody = mapper.readValue(
+			createUserJson,
+			LoginResponseDTO.class
+		);
+		String accessToken = loginBody.getAccessToken();
 
 		String newFullName = "new full name";
 		String newDescription = "new description";
@@ -60,7 +67,6 @@ public class UpdateUserTests {
 			.description(newDescription)
 			.build();
 
-		var mapper = new ObjectMapper();
 		String json = mapper.writeValueAsString(body);
 
 		ResultActions res =
@@ -83,8 +89,10 @@ public class UpdateUserTests {
 			LoginResponseDTO.class
 		);
 
-		TokenPayloadEntity payload =
-			this.decodeToken(mapper, resBody.getAccessToken());
+		TokenPayloadEntity payload = JWTDecoder.decode(
+			resBody.getAccessToken(),
+			mapper
+		);
 
 		assertThat(payload.getFullName()).isEqualTo(newFullName);
 		assertThat(payload.getDescription()).isEqualTo(newDescription);
@@ -93,7 +101,17 @@ public class UpdateUserTests {
 	@Test
 	@DisplayName("it should throw a bad request")
 	void badRequestCase() throws Exception {
-		String accessToken = this.createUser();
+		var mapper = new ObjectMapper();
+		var createUserRes = CreateUserFactory.create(mapper, this.mockMvc);
+		var createUserJson = createUserRes
+			.andReturn()
+			.getResponse()
+			.getContentAsString();
+		var loginBody = mapper.readValue(
+			createUserJson,
+			LoginResponseDTO.class
+		);
+		String accessToken = loginBody.getAccessToken();
 
 		ResultActions res =
 			this.mockMvc.perform(
@@ -114,52 +132,5 @@ public class UpdateUserTests {
 				);
 
 		res.andExpect(status().isForbidden());
-	}
-
-	private TokenPayloadEntity decodeToken(ObjectMapper mapper, String token)
-		throws Exception {
-		String payload = token.split("\\.", 4)[1];
-		Decoder base64Decoder = Base64.getUrlDecoder();
-		String decodedPayload = new String(
-			base64Decoder.decode(payload),
-			StandardCharsets.UTF_8
-		);
-
-		var decodedToken = mapper.readValue(
-			decodedPayload,
-			TokenPayloadEntity.class
-		);
-		return decodedToken;
-	}
-
-	private String createUser() throws Exception {
-		var body = CreateUserDTO.builder()
-			.email("johndoe@email.com")
-			.fullName("John Doe")
-			.password("123456")
-			.build();
-
-		var mapper = new ObjectMapper();
-		String json = mapper.writeValueAsString(body);
-
-		ResultActions res =
-			this.mockMvc.perform(
-					post("/user")
-						.content(json)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
-
-		res
-			.andExpect(status().isCreated())
-			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-			.andExpect(jsonPath("$.access_token").isString())
-			.andExpect(header().exists("set-cookie"));
-
-		String resBody = res.andReturn().getResponse().getContentAsString();
-		LoginResponseDTO resJson = mapper.readValue(
-			resBody,
-			LoginResponseDTO.class
-		);
-		return resJson.getAccessToken();
 	}
 }

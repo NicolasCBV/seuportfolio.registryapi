@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS public.base_contents (
     PRIMARY KEY(id),
     CONSTRAINT CHECK_base_contents_package_id_and_category
     CHECK (
-        (package_id IS NULL AND category = 0::SMALLINT) OR
+        (package_id IS NULL AND (category = 0::SMALLINT OR category = 2::SMALLINT)) OR
         (package_id IS NOT NULL AND category != 0::SMALLINT)
     )
 );

@@ -9,6 +9,7 @@ import com.seuportfolio.registryapi.modules.user.modals.UserEntity;
 import com.seuportfolio.registryapi.modules.user.repositories.UserRepo;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -53,8 +54,9 @@ public class UpdateBaseContentTests {
 				BaseContentCategoryEnum.ORGANIZATION.getValue()
 			);
 
+		this.baseContentRepo.flush();
 		Optional<BaseContentEntity> optUpdatedOrg =
-			this.baseContentRepo.findById(org.getId());
+			this.baseContentRepo.findByName(newName);
 
 		assertThat(optUpdatedOrg.isEmpty()).isFalse();
 
@@ -64,23 +66,29 @@ public class UpdateBaseContentTests {
 	}
 
 	private UserEntity createUser() {
-		return this.entityManager.merge(
-				UserEntity.builder()
-					.fullName("John Doe")
-					.email("johndoe@email.com")
-					.password("123456")
-					.build()
-			);
+		var user = UserEntity.builder()
+			.fullName("John Doe")
+			.email("johndoe@email.com")
+			.password("123456")
+			.build();
+		this.entityManager.persist(user);
+
+		return user;
 	}
 
 	private BaseContentEntity createOrganization(UserEntity user) {
-		return this.entityManager.merge(
-				BaseContentEntity.builder()
-					.name("org name")
-					.description("description")
-					.userEntity(user)
-					.category(BaseContentCategoryEnum.ORGANIZATION.getValue())
-					.build()
-			);
+		var org = BaseContentEntity.builder()
+			.name("org name")
+			.description("description")
+			.userEntity(user)
+			.category(BaseContentCategoryEnum.ORGANIZATION.getValue())
+			.build();
+		var orgList = new ArrayList<BaseContentEntity>(1);
+		orgList.add(org);
+
+		user.setBaseContentEntity(orgList);
+		this.entityManager.persist(org);
+
+		return org;
 	}
 }

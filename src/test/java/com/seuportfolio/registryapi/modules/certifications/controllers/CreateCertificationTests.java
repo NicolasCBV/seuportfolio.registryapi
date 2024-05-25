@@ -7,22 +7,20 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.seuportfolio.registryapi.modules.certifications.presentation.dto.CreateCertificationDTO;
-import com.seuportfolio.registryapi.modules.globals.modals.BaseContentCategoryEnum;
 import com.seuportfolio.registryapi.modules.globals.modals.BaseContentEntity;
-import com.seuportfolio.registryapi.modules.globals.modals.PackageEntity;
-import com.seuportfolio.registryapi.modules.globals.modals.PackageEnum;
+import com.seuportfolio.registryapi.modules.globals.repositories.BaseContentRepo;
 import com.seuportfolio.registryapi.modules.user.modals.TokenPayloadEntity;
 import com.seuportfolio.registryapi.modules.user.modals.UserEntity;
-import com.seuportfolio.registryapi.modules.user.presentation.dto.CreateUserDTO;
 import com.seuportfolio.registryapi.modules.user.presentation.dto.LoginResponseDTO;
 import com.seuportfolio.registryapi.modules.user.repositories.UserRepo;
+import com.seuportfolio.registryapi.tests.commonFactories.CreateOrgFactory;
+import com.seuportfolio.registryapi.tests.httpFactories.CreateUserFactory;
+import com.seuportfolio.registryapi.utils.jwt.JWTDecoder;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -49,6 +47,9 @@ public class CreateCertificationTests {
 	@Autowired
 	private UserRepo userRepo;
 
+	@Autowired
+	private BaseContentRepo baseContentRepo;
+
 	@BeforeEach
 	@Transactional
 	void flushAll() {
@@ -62,7 +63,10 @@ public class CreateCertificationTests {
 	void createCertificationSuccessCase() throws Exception {
 		var mapper = new ObjectMapper();
 		mapper.registerModule(new JavaTimeModule());
-		ResultActions createUserResult = this.createUser(mapper);
+		ResultActions createUserResult = CreateUserFactory.create(
+			mapper,
+			this.mockMvc
+		);
 		String content = createUserResult
 			.andReturn()
 			.getResponse()
@@ -71,9 +75,20 @@ public class CreateCertificationTests {
 			content,
 			LoginResponseDTO.class
 		);
-		TokenPayloadEntity token = this.decodeToken(loginResult, mapper);
+		TokenPayloadEntity token = JWTDecoder.decode(
+			loginResult.getAccessToken(),
+			mapper
+		);
 
-		BaseContentEntity org = this.createOrg(token.getSub());
+		Optional<UserEntity> optUser =
+			this.userRepo.findByEmail(token.getSub());
+		assertThat(optUser.isEmpty()).isFalse();
+
+		BaseContentEntity org = CreateOrgFactory.create(
+			this.entityManager,
+			this.baseContentRepo,
+			optUser.get()
+		);
 
 		var tagList = new ArrayList<String>(1);
 		tagList.add("simple tag");
@@ -107,7 +122,10 @@ public class CreateCertificationTests {
 	void badRequestCase() throws Exception {
 		var mapper = new ObjectMapper();
 		mapper.registerModule(new JavaTimeModule());
-		ResultActions createUserResult = this.createUser(mapper);
+		ResultActions createUserResult = CreateUserFactory.create(
+			mapper,
+			this.mockMvc
+		);
 		String content = createUserResult
 			.andReturn()
 			.getResponse()
@@ -128,65 +146,5 @@ public class CreateCertificationTests {
 						.content("{}")
 				);
 		result.andExpect(status().isBadRequest());
-	}
-
-	private TokenPayloadEntity decodeToken(
-		LoginResponseDTO dto,
-		ObjectMapper mapper
-	) throws Exception {
-		String token = dto.getAccessToken();
-		String payload = token.split("\\.", 4)[1];
-
-		var decoder = Base64.getUrlDecoder();
-		String decodedPayload = new String(
-			decoder.decode(payload),
-			StandardCharsets.UTF_8.toString()
-		);
-		return mapper.readValue(decodedPayload, TokenPayloadEntity.class);
-	}
-
-	private ResultActions createUser(ObjectMapper mapper) throws Exception {
-		var body = CreateUserDTO.builder()
-			.email("johndoe@email.com")
-			.fullName("John Doe")
-			.password("123456")
-			.build();
-
-		String json = mapper.writeValueAsString(body);
-
-		ResultActions result =
-			this.mockMvc.perform(
-					post("/user")
-						.content(json)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
-
-		return result;
-	}
-
-	private BaseContentEntity createOrg(String email) {
-		Optional<UserEntity> optUser = this.userRepo.findByEmail(email);
-		assertThat(optUser.isEmpty()).isFalse();
-
-		var user = optUser.get();
-
-		var pack = PackageEntity.builder()
-			.type(PackageEnum.ORGANIZATION.getValue())
-			.build();
-		var org = BaseContentEntity.builder()
-			.name("org")
-			.description("description")
-			.userEntity(user)
-			.category(BaseContentCategoryEnum.ORGANIZATION.getValue())
-			.ownerOf(pack)
-			.build();
-		pack.setRoot(org);
-
-		var baseContentList = new ArrayList<BaseContentEntity>();
-		baseContentList.add(org);
-		user.setBaseContentEntity(baseContentList);
-
-		this.entityManager.persist(org);
-		return org;
 	}
 }

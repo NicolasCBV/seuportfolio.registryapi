@@ -1,7 +1,8 @@
 package com.seuportfolio.registryapi.modules.globals.modals;
 
 public enum PackageEnum {
-	ORGANIZATION((short) 0);
+	ORGANIZATION((short) 0),
+	PROJECT((short) 1);
 
 	private final short value;
 

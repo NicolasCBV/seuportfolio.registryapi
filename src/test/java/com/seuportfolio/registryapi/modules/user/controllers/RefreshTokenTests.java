@@ -7,8 +7,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.seuportfolio.registryapi.modules.user.presentation.dto.CreateUserDTO;
 import com.seuportfolio.registryapi.modules.user.repositories.UserRepo;
+import com.seuportfolio.registryapi.tests.httpFactories.CreateUserFactory;
 import jakarta.servlet.http.Cookie;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,7 +44,10 @@ public class RefreshTokenTests {
 	@DisplayName("it should refresh tokens")
 	void refreshTokenSuccessCase() throws Exception {
 		var mapper = new ObjectMapper();
-		ResultActions createUserResult = this.createUser(mapper);
+		ResultActions createUserResult = CreateUserFactory.create(
+			mapper,
+			this.mockMvc
+		);
 
 		Cookie cookie = createUserResult
 			.andReturn()
@@ -66,30 +69,5 @@ public class RefreshTokenTests {
 		ResultActions refreshTokens =
 			this.mockMvc.perform(post("/auth/refresh-tokens"));
 		refreshTokens.andExpect(status().isForbidden());
-	}
-
-	private ResultActions createUser(ObjectMapper mapper) throws Exception {
-		var body = CreateUserDTO.builder()
-			.email("johndoe@email.com")
-			.password("123456")
-			.fullName("John Doe")
-			.build();
-
-		var json = mapper.writeValueAsString(body);
-
-		ResultActions result =
-			this.mockMvc.perform(
-					post("/user")
-						.content(json)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
-
-		result
-			.andExpect(status().isCreated())
-			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-			.andExpect(jsonPath("$.access_token").isString())
-			.andExpect(header().exists("set-cookie"));
-
-		return result;
 	}
 }

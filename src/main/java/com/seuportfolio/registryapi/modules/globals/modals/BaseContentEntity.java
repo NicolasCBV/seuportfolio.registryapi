@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.seuportfolio.registryapi.modules.certifications.modals.CertificationEntity;
+import com.seuportfolio.registryapi.modules.projects.modals.ProjectEntity;
 import com.seuportfolio.registryapi.modules.user.modals.UserEntity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -70,6 +71,7 @@ public class BaseContentEntity {
 	@EqualsAndHashCode.Exclude
 	@ManyToOne(optional = false)
 	@JoinColumn(name = "user_id", nullable = false)
+	@OnDelete(action = OnDeleteAction.CASCADE)
 	@JsonBackReference
 	private UserEntity userEntity;
 
@@ -87,14 +89,22 @@ public class BaseContentEntity {
 	@EqualsAndHashCode.Exclude
 	@OneToOne(mappedBy = "baseContentEntity", cascade = CascadeType.ALL)
 	@JsonProperty("certification_infos")
-	@OnDelete(action = OnDeleteAction.CASCADE)
 	private CertificationEntity certificationEntity;
+
+	@ToString.Exclude
+	@EqualsAndHashCode.Exclude
+	@OneToOne(
+		mappedBy = "baseContentEntity",
+		cascade = CascadeType.ALL,
+		optional = false
+	)
+	@JsonProperty("projects")
+	private ProjectEntity projectEntity;
 
 	@ToString.Exclude
 	@EqualsAndHashCode.Exclude
 	@OneToOne(mappedBy = "root", cascade = CascadeType.ALL, optional = true)
 	@JsonProperty("package_owner")
-	@OnDelete(action = OnDeleteAction.CASCADE)
 	private PackageEntity ownerOf;
 
 	@ToString.Exclude
