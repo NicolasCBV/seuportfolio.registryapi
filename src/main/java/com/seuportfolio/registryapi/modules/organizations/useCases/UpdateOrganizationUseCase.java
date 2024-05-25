@@ -38,10 +38,10 @@ public class UpdateOrganizationUseCase {
 				);
 
 		OrganizationChangesDTO orgChanges = dto.getOrganizationChanges();
-		if (
-			orgChanges != null &&
-			orgChanges.getClass() == OrganizationChangesDTO.class
-		) this.tryUpdateOrg(org, dto.getOrganizationChanges());
+		if (orgChanges != null) this.tryUpdateOrg(
+				org,
+				dto.getOrganizationChanges()
+			);
 
 		return this.baseContentRepo.save(org);
 	}
@@ -50,12 +50,11 @@ public class UpdateOrganizationUseCase {
 		BaseContentEntity org,
 		OrganizationChangesDTO dto
 	) {
-		String description = dto.getDescription() != null
-			? dto.getDescription()
-			: org.getDescription();
-		String name = dto.getName() != null ? dto.getName() : org.getName();
-
-		org.setName(name);
-		org.setDescription(description);
+		org.setDescription(
+			dto.getDescription() != null
+				? dto.getDescription()
+				: org.getDescription()
+		);
+		org.setName(dto.getName() != null ? dto.getName() : org.getName());
 	}
 }

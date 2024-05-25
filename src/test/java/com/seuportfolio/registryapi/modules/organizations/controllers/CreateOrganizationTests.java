@@ -5,9 +5,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.seuportfolio.registryapi.modules.organizations.presentation.dto.CreateOrganizationDTO;
-import com.seuportfolio.registryapi.modules.user.presentation.dto.CreateUserDTO;
 import com.seuportfolio.registryapi.modules.user.presentation.dto.LoginResponseDTO;
 import com.seuportfolio.registryapi.modules.user.repositories.UserRepo;
+import com.seuportfolio.registryapi.tests.httpFactories.CreateUserFactory;
 import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +44,7 @@ public class CreateOrganizationTests {
 	@DisplayName("it should be able to create a organization")
 	void createOrgSuccessCase() throws Exception {
 		var mapper = new ObjectMapper();
-		ResultActions result = this.createUser(mapper);
+		ResultActions result = CreateUserFactory.create(mapper, this.mockMvc);
 		String strContent = result
 			.andReturn()
 			.getResponse()
@@ -79,22 +79,15 @@ public class CreateOrganizationTests {
 		createOrgResult.andExpect(status().isCreated());
 	}
 
-	private ResultActions createUser(ObjectMapper mapper) throws Exception {
-		var body = CreateUserDTO.builder()
-			.email("johndoe@email.com")
-			.fullName("John Doe")
-			.password("123456")
-			.build();
-
-		String json = mapper.writeValueAsString(body);
-
+	@Test
+	@DisplayName("it should throw bad request because body is a empty json")
+	void createUserBadRequestCase() throws Exception {
 		ResultActions result =
 			this.mockMvc.perform(
 					post("/user")
-						.content(json)
 						.contentType(MediaType.APPLICATION_JSON)
+						.content("{}")
 				);
-
-		return result;
+		result.andExpect(status().isBadRequest());
 	}
 }

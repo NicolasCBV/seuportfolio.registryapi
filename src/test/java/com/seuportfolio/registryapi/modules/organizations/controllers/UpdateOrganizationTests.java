@@ -2,16 +2,10 @@ package com.seuportfolio.registryapi.modules.organizations.controllers;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.seuportfolio.registryapi.modules.globals.modals.BaseContentCategoryEnum;
 import com.seuportfolio.registryapi.modules.globals.modals.BaseContentEntity;
-import com.seuportfolio.registryapi.modules.globals.modals.PackageEntity;
-import com.seuportfolio.registryapi.modules.globals.modals.PackageEnum;
 import com.seuportfolio.registryapi.modules.globals.modals.TagEntity;
 import com.seuportfolio.registryapi.modules.globals.repositories.BaseContentRepo;
 import com.seuportfolio.registryapi.modules.globals.repositories.TagRepo;
@@ -19,15 +13,14 @@ import com.seuportfolio.registryapi.modules.organizations.presentation.dto.Organ
 import com.seuportfolio.registryapi.modules.organizations.presentation.dto.UpdateOrganizationDTO;
 import com.seuportfolio.registryapi.modules.user.modals.TokenPayloadEntity;
 import com.seuportfolio.registryapi.modules.user.modals.UserEntity;
-import com.seuportfolio.registryapi.modules.user.presentation.dto.CreateUserDTO;
 import com.seuportfolio.registryapi.modules.user.presentation.dto.LoginResponseDTO;
 import com.seuportfolio.registryapi.modules.user.repositories.UserRepo;
+import com.seuportfolio.registryapi.tests.commonFactories.CreateOrgFactory;
+import com.seuportfolio.registryapi.tests.httpFactories.CreateUserFactory;
+import com.seuportfolio.registryapi.utils.jwt.JWTDecoder;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Base64.Decoder;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,8 +54,7 @@ public class UpdateOrganizationTests {
 	@Autowired
 	private BaseContentRepo baseContentRepo;
 
-	private String oldTagName = "old tag";
-	private String newTagName = "new tag";
+	private String newTagName = "new tag name";
 
 	@BeforeEach
 	@Transactional
@@ -77,22 +69,45 @@ public class UpdateOrganizationTests {
 	void updateOrganizationSuccessCase() throws Exception {
 		ObjectMapper mapper = new ObjectMapper();
 
-		LoginResponseDTO createUserBody = this.createUser(mapper);
-		TokenPayloadEntity decodedToken =
-			this.decodeToken(createUserBody.getAccessToken(), mapper);
+		ResultActions createUserResult = CreateUserFactory.create(
+			mapper,
+			this.mockMvc
+		);
+		var createUserResultJson = createUserResult
+			.andReturn()
+			.getResponse()
+			.getContentAsString();
+		var parsedCreateUserBody = mapper.readValue(
+			createUserResultJson,
+			LoginResponseDTO.class
+		);
 
-		BaseContentEntity org = this.createOrg(decodedToken.getSub());
+		TokenPayloadEntity decodedToken = JWTDecoder.decode(
+			parsedCreateUserBody.getAccessToken(),
+			mapper
+		);
+
+		Optional<UserEntity> optUser =
+			this.userRepo.findByEmail(decodedToken.getSub());
+		assertThat(optUser.isEmpty()).isFalse();
+
+		BaseContentEntity org = CreateOrgFactory.create(
+			this.entityManager,
+			this.baseContentRepo,
+			optUser.get()
+		);
 
 		var organizationChanges = OrganizationChangesDTO.builder()
 			.name("new org name")
 			.description("new org description")
 			.build();
 
+		String oldTagName = org.getTagEntity().get(0).getName();
 		List<String> deleteTags = new ArrayList<String>(1);
 		deleteTags.add(oldTagName);
 
 		List<String> insertTags = new ArrayList<String>(1);
-		insertTags.add(newTagName);
+		insertTags.add(this.newTagName);
 
 		var requestBody = UpdateOrganizationDTO.builder()
 			.organizationChanges(organizationChanges)
@@ -109,7 +124,7 @@ public class UpdateOrganizationTests {
 						.content(requestBodyJson)
 						.header(
 							"Authorization",
-							"Bearer " + createUserBody.getAccessToken()
+							"Bearer " + parsedCreateUserBody.getAccessToken()
 						)
 				);
 		result.andExpect(status().isOk());
@@ -125,7 +140,7 @@ public class UpdateOrganizationTests {
 		);
 
 		Optional<TagEntity> optSearchedTag =
-			this.tagRepo.findByName(newTagName);
+			this.tagRepo.findByName(this.newTagName);
 		assertThat(optSearchedTag.isEmpty()).isFalse();
 
 		Optional<TagEntity> optSearchedDeletedTag =
@@ -137,7 +152,18 @@ public class UpdateOrganizationTests {
 	@DisplayName("it should throw bad request")
 	void badRequestCase() throws Exception {
 		ObjectMapper mapper = new ObjectMapper();
-		LoginResponseDTO createUserResult = this.createUser(mapper);
+		ResultActions createUserResult = CreateUserFactory.create(
+			mapper,
+			this.mockMvc
+		);
+		var createUserResultJson = createUserResult
+			.andReturn()
+			.getResponse()
+			.getContentAsString();
+		var parsedCreateUserBody = mapper.readValue(
+			createUserResultJson,
+			LoginResponseDTO.class
+		);
 
 		ResultActions result =
 			this.mockMvc.perform(
@@ -146,91 +172,9 @@ public class UpdateOrganizationTests {
 						.content("{}")
 						.header(
 							"Authorization",
-							"Bearer " + createUserResult.getAccessToken()
+							"Bearer " + parsedCreateUserBody.getAccessToken()
 						)
 				);
 		result.andExpect(status().isBadRequest());
-	}
-
-	private TokenPayloadEntity decodeToken(String token, ObjectMapper mapper)
-		throws Exception {
-		String payload = token.split("\\.", 4)[1];
-
-		Decoder decoder = Base64.getUrlDecoder();
-		String payloadAsJson = new String(
-			decoder.decode(payload),
-			StandardCharsets.UTF_8
-		);
-
-		TokenPayloadEntity parsedPayload = mapper.readValue(
-			payloadAsJson,
-			TokenPayloadEntity.class
-		);
-		return parsedPayload;
-	}
-
-	private LoginResponseDTO createUser(ObjectMapper mapper) throws Exception {
-		var body = CreateUserDTO.builder()
-			.email("johndoe@email.com")
-			.fullName("John Doe")
-			.password("123456")
-			.build();
-
-		String json = mapper.writeValueAsString(body);
-
-		ResultActions result =
-			this.mockMvc.perform(
-					post("/user")
-						.content(json)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
-		result
-			.andExpect(status().isCreated())
-			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-			.andExpect(jsonPath("$.access_token").isString());
-
-		String resJson = result.andReturn().getResponse().getContentAsString();
-		LoginResponseDTO resBody = mapper.readValue(
-			resJson,
-			LoginResponseDTO.class
-		);
-
-		return resBody;
-	}
-
-	private BaseContentEntity createOrg(String email) throws Exception {
-		Optional<UserEntity> optUser = this.userRepo.findByEmail(email);
-		assertThat(optUser.isEmpty()).isFalse();
-		var user = optUser.get();
-
-		var pack = PackageEntity.builder()
-			.type(PackageEnum.ORGANIZATION.getValue())
-			.build();
-		var org = BaseContentEntity.builder()
-			.name("org name")
-			.description("description")
-			.userEntity(user)
-			.category(BaseContentCategoryEnum.ORGANIZATION.getValue())
-			.ownerOf(pack)
-			.build();
-		pack.setRoot(org);
-
-		var tagList = new ArrayList<TagEntity>(2);
-		tagList.add(
-			TagEntity.builder().name(oldTagName).baseContentEntity(org).build()
-		);
-
-		org.setTagEntity(tagList);
-
-		var orgList = new ArrayList<BaseContentEntity>(1);
-		orgList.add(org);
-		user.setBaseContentEntity(orgList);
-		this.entityManager.persist(org);
-
-		Optional<BaseContentEntity> optSearchedOrg =
-			this.baseContentRepo.findByName(org.getName());
-		assertThat(optSearchedOrg.isEmpty()).isFalse();
-
-		return optSearchedOrg.get();
 	}
 }

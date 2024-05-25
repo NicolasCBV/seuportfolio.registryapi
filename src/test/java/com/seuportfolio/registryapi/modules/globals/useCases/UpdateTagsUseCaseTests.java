@@ -5,6 +5,7 @@ import static org.mockito.Mockito.when;
 
 import com.seuportfolio.registryapi.modules.globals.modals.BaseContentCategoryEnum;
 import com.seuportfolio.registryapi.modules.globals.modals.BaseContentEntity;
+import com.seuportfolio.registryapi.modules.globals.modals.TagEntity;
 import com.seuportfolio.registryapi.modules.globals.repositories.BaseContentRepo;
 import com.seuportfolio.registryapi.modules.globals.repositories.TagRepo;
 import com.seuportfolio.registryapi.modules.user.modals.UserEntity;
@@ -43,10 +44,17 @@ public class UpdateTagsUseCaseTests {
 			.email("johndoe@email.com")
 			.password("123456")
 			.build();
+
+		var tag = TagEntity.builder().name("old tag name").build();
+		var tagList = new ArrayList<TagEntity>(1);
+		tagList.add(tag);
+
 		var org = BaseContentEntity.builder()
 			.name("org")
 			.description("description")
+			.tagEntity(tagList)
 			.build();
+		tag.setBaseContentEntity(org);
 
 		when(
 			baseContentRepo.findByUserIdAndIdAndCategory(
@@ -60,7 +68,7 @@ public class UpdateTagsUseCaseTests {
 		insertTags.add("new tag");
 
 		var removeTags = new ArrayList<String>(1);
-		removeTags.add("new tag");
+		removeTags.add(tag.getName());
 		assertDoesNotThrow(
 			() ->
 				this.updateTagsUseCase.exec(

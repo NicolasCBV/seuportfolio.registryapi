@@ -45,6 +45,7 @@ public interface BaseContentRepo
 		"SET name = :name, description = :description " +
 		"WHERE b.id = :base_content_id AND b.category = :category"
 	)
+	@Transactional
 	int updateBaseContent(
 		@Param("name") String name,
 		@Param("description") String description,
