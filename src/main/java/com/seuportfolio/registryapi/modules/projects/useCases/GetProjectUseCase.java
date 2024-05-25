@@ -6,31 +6,25 @@ import com.seuportfolio.registryapi.modules.globals.repositories.BaseContentRepo
 import com.seuportfolio.registryapi.modules.projects.modals.mappers.ProjectMapper;
 import com.seuportfolio.registryapi.modules.projects.presentation.dto.ProjectDTO;
 import com.seuportfolio.registryapi.modules.user.modals.UserEntity;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
+import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class GetProjectsUseCase {
+public class GetProjectUseCase {
 
 	@Autowired
 	private BaseContentRepo baseContentRepo;
 
-	public List<ProjectDTO> exec(int offset, UserEntity user) {
-		List<BaseContentEntity> baseContentProjectList =
-			this.baseContentRepo.getBaseContentCollection(
+	public Optional<ProjectDTO> exec(String baseContentId, UserEntity user) {
+		Optional<BaseContentEntity> optBaseContentProject =
+			this.baseContentRepo.findByUserIdAndIdAndCategory(
 					user.getId(),
-					10,
-					offset,
+					UUID.fromString(baseContentId),
 					BaseContentCategoryEnum.PROJECT.getValue()
 				);
-
-		List<ProjectDTO> data = baseContentProjectList
-			.stream()
-			.map(ProjectMapper::prettify)
-			.collect(Collectors.toList());
-
-		return data;
+		if (optBaseContentProject.isEmpty()) return Optional.empty();
+		return Optional.of(ProjectMapper.prettify(optBaseContentProject.get()));
 	}
 }

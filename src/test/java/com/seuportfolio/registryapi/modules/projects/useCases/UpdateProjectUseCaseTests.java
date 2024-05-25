@@ -32,7 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class UpdateProjectUseCaseTests {
 
 	@Mock
-	private BaseContentRepo baseContentRepo;
+	private BaseContentRepo unusedBaseContentRepo;
 
 	@Mock
 	private UpdateTagsUseCase updateTagsUseCase;

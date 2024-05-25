@@ -1,6 +1,7 @@
 package com.seuportfolio.registryapi.modules.projects.presentation.dto;
 
-import java.util.Optional;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class GetProjectResponseDTO {
+public class GetProjectsResponseDTO {
 
-	private Optional<ProjectDTO> project;
+	private List<ProjectDTO> projects;
 }

@@ -2,10 +2,12 @@ package com.seuportfolio.registryapi.modules.certifications.presentation.control
 
 import com.seuportfolio.registryapi.modules.certifications.presentation.dto.CertificationDTO;
 import com.seuportfolio.registryapi.modules.certifications.presentation.dto.CreateCertificationDTO;
+import com.seuportfolio.registryapi.modules.certifications.presentation.dto.GetCertificationResponseDTO;
 import com.seuportfolio.registryapi.modules.certifications.presentation.dto.GetCertificationsResponseDTO;
 import com.seuportfolio.registryapi.modules.certifications.presentation.dto.UpdateCertificationDTO;
 import com.seuportfolio.registryapi.modules.certifications.useCases.CreateCertificationUseCase;
 import com.seuportfolio.registryapi.modules.certifications.useCases.DeleteCertificationUseCase;
+import com.seuportfolio.registryapi.modules.certifications.useCases.GetCertificationUseCase;
 import com.seuportfolio.registryapi.modules.certifications.useCases.GetCertificationsUseCase;
 import com.seuportfolio.registryapi.modules.certifications.useCases.UpdateCertificationUseCase;
 import com.seuportfolio.registryapi.modules.user.modals.UserEntity;
@@ -15,6 +17,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.PositiveOrZero;
 import java.net.URI;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -37,6 +40,9 @@ public class CertificationController {
 
 	@Autowired
 	private GetCertificationsUseCase getCertificationsUseCase;
+
+	@Autowired
+	private GetCertificationUseCase getCertificationUseCase;
 
 	@Autowired
 	private DeleteCertificationUseCase deleteCertificationUseCase;
@@ -103,5 +109,23 @@ public class CertificationController {
 		this.updateCertificationUseCase.exec(baseContentId, dto, user);
 
 		return ResponseEntity.ok().build();
+	}
+
+	@GetMapping("{base_content_id}")
+	public ResponseEntity<GetCertificationResponseDTO> get(
+		@Valid @UUIDParameter @PathVariable(
+			"base_content_id"
+		) String baseContentId
+	) {
+		var user = (UserEntity) SecurityContextHolder.getContext()
+			.getAuthentication()
+			.getPrincipal();
+		Optional<CertificationDTO> resBody =
+			this.getCertificationUseCase.exec(baseContentId, user);
+		var parsedResBody = GetCertificationResponseDTO.builder()
+			.certification(resBody) // dispara um erro caso seja nulo
+			.build();
+
+		return ResponseEntity.ok().body(parsedResBody);
 	}
 }
