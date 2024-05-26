@@ -1,0 +1,44 @@
+version: "3.8"
+
+services:
+  db:
+    hostname: db
+    image: postgres
+    ports:
+      - 8888:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=db
+    volumes:
+      - db:/var/lib/postgresql/data
+
+  app:
+    depends_on:
+      - db
+    build:
+      dockerfile: Dockerfile
+      context: .
+    ports:
+      - 8080:8080
+    environment:
+      - PORT=8080
+      - APP_NAME=registryapi
+      - DB_HOSTNAME=db
+      - DB_PORT=5432
+      - DB_PATH=db
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=password
+      - ACCESS_TOKEN_SECRET=test
+      - ACCESS_TOKEN_EXP=5
+      - REFRESH_TOKEN_SECRET=test
+      - REFRESH_TOKEN_EXP=24
+      - REFRESH_TOKEN_SECURE=true
+      - REFRESH_TOKEN_DOMAIN=localhost
+      - REFRESH_TOKEN_HTTP_ONLY=true
+      - SHOW_SQL=true
+      - EXPOSE_HEALTH=health
+
+volumes:
+  db:
+    driver: local
