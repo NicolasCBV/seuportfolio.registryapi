@@ -38,6 +38,7 @@ services:
       - REFRESH_TOKEN_HTTP_ONLY=true
       - SHOW_SQL=true
       - EXPOSE_HEALTH=health
+      - CORS_MAPPING=*
 
 volumes:
   db:

@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS public.users (
     created_at      TIMESTAMP WITH TIME ZONE        DEFAULT now()               NOT NULL,
     updated_at      TIMESTAMP WITH TIME ZONE        DEFAULT now()               NOT NULL,
   
-    CONSTRAINT id
+    CONSTRAINT PK_users_id
     PRIMARY KEY(id)
 );
 
