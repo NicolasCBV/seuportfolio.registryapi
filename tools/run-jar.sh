@@ -1,20 +1,22 @@
-export SEU_PORTFOLIO_REGISTRYAPI_PORT=8080
-export SEU_PORTFOLIO_REGISTRYAPI_APP_NAME=registryapi
-export SEU_PORTFOLIO_REGISTRYAPI_DB_HOSTNAME=localhost
-export SEU_PORTFOLIO_REGISTRYAPI_DB_PORT=8888
-export SEU_PORTFOLIO_REGISTRYAPI_DB_PATH=db
-export SEU_PORTFOLIO_REGISTRYAPI_DB_USERNAME=admin
-export SEU_PORTFOLIO_REGISTRYAPI_DB_PASSWORD=admin
+export PORT=8080
+export APP_NAME=registryapi
+export DB_HOSTNAME=localhost
+export DB_PORT=8888
+export DB_PATH=db
+export DB_USERNAME=postgres
+export DB_PASSWORD=password
+export CORS_MAPPING='/**'
+export CORS_CLIENT_URL=*
+export ACCESS_TOKEN_SECRET=asopdfoasfdoajsdfOPJoihjsfd
+export ACCESS_TOKEN_EXP=2
 
-export SEU_PORTFOLIO_REGISTRYAPI_ACCESS_TOKEN_SECRET='asopdfoasfdoajsdfOPJoihjsfd'
-export SEU_PORTFOLIO_REGISTRYAPI_ACCESS_TOKEN_EXP=2
+export REFRESH_TOKEN_SECRET=sdojfoasjfoasidjfojew
+export REFRESH_TOKEN_EXP=24
+export REFRESH_TOKEN_SECURE=true
+export REFRESH_TOKEN_DOMAIN=localhost
+export REFRESH_TOKEN_HTTP_ONLY=true
 
-export SEU_PORTFOLIO_REGISTRYAPI_REFRESH_TOKEN_SECRET='sdojfoasjfoasidjfojew'
-export SEU_PORTFOLIO_REGISTRYAPI_REFRESH_TOKEN_EXP=24
-export SEU_PORTFOLIO_REGISTRYAPI_REFRESH_TOKEN_SECURE=true
-export SEU_PORTFOLIO_REGISTRYAPI_REFRESH_TOKEN_DOMAIN=localhost
-export SEU_PORTFOLIO_REGISTRYAPI_REFRESH_TOKEN_HTTP_ONLY=true
+export SHOW_SQL=true
+export EXPOSE_HEALTH=health
 
-export SEU_PORTFOLIO_REGISTRYAPI_SHOW_SQL=true
-
-java -jar ./target/registryapi-0.0.1-SNAPSHOT.jar -Dspring.config.location=src/resources/application.prod.properties
+java -Dspring.profiles.active=prod -jar ./target/registryapi-0.0.1-SNAPSHOT.jar

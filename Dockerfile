@@ -10,4 +10,4 @@ COPY src/main/resources/application-prod.properties application.properties
 
 EXPOSE ${PORT}
 
-CMD [ "java", "-jar", "app.jar", "-Dspring.config.location=application.properties" ]
+CMD [ "java", "-Dspring.profiles.active=prod", "-jar", "./app.jar" ]

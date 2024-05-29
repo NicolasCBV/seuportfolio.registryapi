@@ -25,6 +25,7 @@ public class SecurityConfigurations {
 		throws Exception {
 		return httpSecurity
 			.csrf(csrf -> csrf.disable())
+			.cors(cors -> cors.disable())
 			.sessionManagement(
 				session ->
 					session.sessionCreationPolicy(
@@ -34,6 +35,8 @@ public class SecurityConfigurations {
 			.authorizeHttpRequests(
 				auth ->
 					auth
+						.requestMatchers(HttpMethod.OPTIONS, "/**")
+						.permitAll()
 						.requestMatchers(HttpMethod.POST, "/auth/login")
 						.permitAll()
 						.requestMatchers(HttpMethod.POST, "/user")
